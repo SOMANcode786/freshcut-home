@@ -7,7 +7,7 @@
     "dev": "vite",
     "seo": "node scripts/generate-seo.mjs",
     "convert-images": "node scripts/convert-images.mjs",
-    "build": "npm run convert-images && npm run seo && vite build",
+    "build": "node scripts/convert-images.mjs && node scripts/generate-seo.mjs && vite build",
     "preview": "vite preview"
   },
   "dependencies": {
