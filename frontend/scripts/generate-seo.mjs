@@ -1,7 +1,7 @@
 import fs from 'node:fs/promises';
 import products from '../../backend/src/data/products.js';
 
-const raw = process.env.VITE_SITE_URL || process.env.SITE_URL || (process.env.VERCEL_PROJECT_PRODUCTION_URL ? `https://${process.env.VERCEL_PROJECT_PRODUCTION_URL}` : 'http://localhost:5173');
+const raw = process.env.VITE_SITE_URL || process.env.SITE_URL || 'https://www.freshcuthome.store';
 const site = raw.replace(/\/$/, '');
 
 const activeProducts = products.filter(p => p.active !== false);
