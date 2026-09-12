@@ -1,0 +1,65 @@
+name: CI/CD Pipeline
+
+on:
+  push:
+    branches: [ main, master ]
+  pull_request:
+    branches: [ main, master ]
+
+jobs:
+  backend-ci:
+    name: Backend CI (Tests & Prisma)
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'npm'
+          cache-dependency-path: backend/package-lock.json
+
+      - name: Install Backend Dependencies
+        run: npm ci
+        working-directory: backend
+
+      - name: Generate Prisma Client
+        run: npm run db:generate
+        working-directory: backend
+
+      - name: Run Backend Tests
+        run: npm test
+        working-directory: backend
+        env:
+          JWT_SECRET: ${{ secrets.JWT_SECRET || 'ci-test-jwt-secret-key-32-chars' }}
+          ADMIN_EMAIL: ${{ secrets.ADMIN_EMAIL || 'admin@example.test' }}
+          ADMIN_PASSWORD: ${{ secrets.ADMIN_PASSWORD || 'test-only-password' }}
+
+  frontend-ci:
+    name: Frontend CI (Build & WebP & Sitemap)
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'npm'
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: Install Frontend Dependencies
+        run: npm ci
+        working-directory: frontend
+
+      - name: Run Frontend Build
+        run: npm run build
+        working-directory: frontend
+        env:
+          VITE_SITE_URL: 'https://freshcut.vercel.app'
+          VITE_API_URL: 'https://freshcut-api.onrender.com/api'

@@ -1,0 +1,1 @@
+import {Router} from 'express';import {createOrder,listOrders,updateOrder} from '../controllers/orderController.js';import {requireAdmin} from '../middleware/authMiddleware.js';const router=Router();router.post('/',createOrder);router.get('/',requireAdmin,listOrders);router.patch('/:id/status',requireAdmin,updateOrder);export default router;
