@@ -310,7 +310,7 @@ export default [
     urdu: 'موسمی مکس سبزی',
     cat: 'Mixes',
     icon: '🫛',
-    image: 'assets/products/seasonal-mix.webp',
+    image: 'assets/products/mix-sabzi.webp',
     description: 'A balanced seasonal mix of potatoes, carrots, peas and cauliflower for family meals.',
     shortDescription: 'A wholesome Pakistani household mix of diced potatoes, carrots, shelled green peas, and cauliflower florets cut for traditional mix sabzi curry.',
     nutritionSummary: {
