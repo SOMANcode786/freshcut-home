@@ -1179,7 +1179,7 @@ export default [
     urdu: 'ثابت ٹنڈا',
     cat: 'Whole',
     icon: '🟢',
-    image: 'assets/products/bottle-gourd-cubes.webp',
+    image: 'assets/products/apple-gourd.webp',
     description: 'Fresh whole apple gourds selected and packed for curry.',
     shortDescription: 'Tender, smooth green whole apple gourds (tinda) selected for soft seeds and thin skin, ideal for traditional home-style tinda masala.',
     nutritionSummary: {
@@ -1221,7 +1221,7 @@ export default [
     urdu: 'ٹنڈا سلائس',
     cat: 'Pre-cut',
     icon: '🟢',
-    image: 'assets/products/sponge-gourd-slices.webp',
+    image: 'assets/products/apple-guard-cube.webp',
     description: 'Apple gourd washed and cut into even round slices.',
     shortDescription: 'Peeled apple gourd (tinda) cut into 6mm round slices, ready to cook into quick tinda bhujia or simmer in curry gravy.',
     nutritionSummary: {
@@ -1258,12 +1258,12 @@ export default [
   },
   {
     id: 31,
-    name: 'Apple Gourd Cubes',
-    slug: 'apple-gourd-cubes',
-    urdu: 'ٹنڈا کیوبز',
-    cat: 'Pre-cut',
+    name: 'Bitter gourd ',
+    slug: 'apple-gourd-whole',
+    urdu: ' کریلا ',
+    cat: 'Whole',
     icon: '🟢',
-    image: 'assets/products/bottle-gourd-cubes.webp',
+    image: 'assets/products/bitter-gourd-whole.webp',
     description: 'Apple gourd peeled and cut into neat cubes.',
     shortDescription: 'Fresh peeled tinda diced into 1.5cm uniform cubes, perfect for traditional tinda masala curry and vegetable stew.',
     nutritionSummary: {
@@ -1306,7 +1306,7 @@ export default [
     urdu: 'ثابت مکئی',
     cat: 'Whole',
     icon: '🌽',
-    image: 'assets/products/seasonal-mix.webp',
+    image: 'assets/products/corn-whole.webp',
     description: 'Fresh whole sweet corn cobs, ready to boil or grill.',
     shortDescription: 'Farm-fresh whole sweet corn cobs with husk intact to retain juicy natural sweetness, ideal for street-style bhutta grilling or boiling.',
     nutritionSummary: {
@@ -1348,7 +1348,7 @@ export default [
     urdu: 'چھلی ہوئی مکئی',
     cat: 'Essentials',
     icon: '🌽',
-    image: 'assets/products/seasonal-mix.webp',
+    image: 'assets/products/corn-peel.webp',
     description: 'Sweet corn cobs with husk removed, ready for cooking.',
     shortDescription: 'Sweet corn cobs cleanly stripped of husk and silk threads, ready to boil, grill, or cut into cobette portions.',
     nutritionSummary: {
@@ -1385,12 +1385,12 @@ export default [
   },
   {
     id: 34,
-    name: 'Sweet Corn Kernels',
-    slug: 'sweet-corn-kernels',
-    urdu: 'مکئی کے دانے',
+    name: 'Cucumber',
+    slug: 'cucumber',
+    urdu: 'کھیرا',
     cat: 'Essentials',
     icon: '🌽',
-    image: 'assets/products/fresh-peas.webp',
+    image: 'assets/products/Cucumber.webp',
     description: 'Fresh sweet corn kernels removed from the cob and packed clean.',
     shortDescription: 'Plump, golden sweet corn kernels sliced fresh off the cob, ready to toss into spicy cup corn, soups, pasta, and salads.',
     nutritionSummary: {
@@ -1434,7 +1434,7 @@ export default [
     urdu: 'بڑی ہری مرچ',
     cat: 'Whole',
     icon: '🌶️',
-    image: 'assets/products/green-chilies.webp',
+    image: 'assets/products/ashari-green-chilli.webp',
     description: 'Fresh large mild green chilies for stuffing and curries.',
     shortDescription: 'Plump, mild green chilies selected for low heat and sturdy outer skin, perfect for Achari Mirch, Bharwan Mirch, or pakora stuffing.',
     nutritionSummary: {
@@ -1558,12 +1558,12 @@ export default [
   },
   {
     id: 39,
-    name: 'Fresh Lemons',
-    slug: 'fresh-lemons',
+    name: 'Fresh Lemons Desi',
+    slug: 'fresh-lemons-desi',
     urdu: 'تازہ لیموں',
     cat: 'Whole',
     icon: '🍋',
-    image: 'assets/products/fresh-tomatoes.webp',
+    image: 'assets/products/lemon-desi.webp',
     description: 'Fresh juicy lemons selected, cleaned and packed.',
     shortDescription: 'Bright, thin-skinned yellow lemons selected for maximum juice yield, vivid citrus aroma, and high Vitamin C content.',
     nutritionSummary: {
@@ -1644,12 +1644,12 @@ export default [
   },
   {
     id: 41,
-    name: 'Fresh Cooking Platter Pack',
-    slug: 'fresh-cooking-platter-pack',
-    urdu: 'فریش کوکنگ پلیٹر',
-    cat: 'Platters',
+    name: 'Desi Garlic',
+    slug: 'desi-garlic',
+    urdu: 'دیسی لہسن',
+    cat: 'Whole',
     icon: '🥗',
-    image: 'assets/products/seasonal-mix.webp',
+    image: 'assets/products/Desi-Garlic-whole.webp',
     description: 'Lady finger, tomato, onion and green chilli packed for one convenient meal.',
     shortDescription: 'An all-in-one meal preparation kit containing pre-sliced lady finger, diced onions, fresh tomatoes, and green chilies for an instant 15-minute bhindi salan.',
     nutritionSummary: {
@@ -1691,7 +1691,7 @@ export default [
     urdu: 'گوار پھلی بڑا کٹ',
     cat: 'Pre-cut',
     icon: '🫛',
-    image: 'assets/products/lady-finger.webp',
+    image: 'assets/products/GawarBeanLargeCut.webp',
     description: 'Fresh gawar beans cleaned and cut into large pieces.',
     shortDescription: 'Fresh cluster beans (gawar phali) de-stringed and cut into 3cm large segments, ready for gawar aloo masala or traditional mustard seed bhujia.',
     nutritionSummary: {
@@ -1733,7 +1733,7 @@ export default [
     urdu: 'گوار پھلی چھوٹا کٹ',
     cat: 'Pre-cut',
     icon: '🫛',
-    image: 'assets/products/lady-finger.webp',
+    image: 'assets/products/GawarBeansChopeed.webp',
     description: 'Fresh gawar beans cleaned and chopped into small pieces.',
     shortDescription: 'Cluster beans de-stringed and finely chopped into 8mm pieces, designed for fast tawa bhujia and mixed bean curries.',
     nutritionSummary: {
@@ -1905,7 +1905,7 @@ export default [
     urdu: 'بھِنڈی بڑا کٹ',
     cat: 'Pre-cut',
     icon: '🌿',
-    image: 'assets/products/lady-finger.webp',
+    image: 'assets/products/laddy-finger-largecut.webp',
     description: 'Tender lady fingers washed and cut into larger pieces.',
     shortDescription: 'Tender green okra washed, stem-trimmed, and cut into sturdy 4cm long pieces, ideal for restaurant-style Bhindi Masala and Kadai Bhindi.',
     nutritionSummary: {
@@ -1942,12 +1942,12 @@ export default [
   },
   {
     id: 48,
-    name: 'Peeled Onions',
-    slug: 'peeled-onions',
-    urdu: 'چھلی ہوئی پیاز',
-    cat: 'Essentials',
+    name: 'Loki whole',
+    slug: 'loki-whole',
+    urdu: '',
+    cat: 'Whole',
     icon: '🧅',
-    image: 'assets/products/chopped-onion.webp',
+    image: 'assets/products/laki-whole.webp',
     description: 'Fresh onions peeled and packed to save preparation time.',
     shortDescription: 'Whole red/yellow onions with dry papery skin peeled off and root tips trimmed, saving you time when custom chopping at home.',
     nutritionSummary: {
@@ -1990,7 +1990,7 @@ export default [
     urdu: 'ثابت پیاز',
     cat: 'Whole',
     icon: '🧅',
-    image: 'assets/products/chopped-onion.webp',
+    image: 'assets/products/whole-onion.webp',
     description: 'Fresh whole onions selected and packed for everyday cooking.',
     shortDescription: 'Premium farm-selected whole onions with tight papery skin and firm bulbs, perfect for long pantry storage and daily cooking essentials.',
     nutritionSummary: {
