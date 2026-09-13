@@ -533,26 +533,83 @@ export default function AdminPage() {
                         />
                       </label>
                       <div className="admin-prices">
-                        {Object.entries(product.prices).map(([weight, price]) => (
-                          <label key={weight}>
-                            {weight} · PKR
-                            <input
-                              type="number"
-                              required
-                              min="1"
-                              step="1"
-                              value={price}
-                              onChange={e =>
-                                editProduct(product.id, {
-                                  prices: {
-                                    ...product.prices,
-                                    [weight]: e.target.value === '' ? '' : Number(e.target.value)
-                                  }
-                                })
-                              }
-                            />
-                          </label>
+                        <span style={{ fontSize: '0.75rem', fontWeight: 700, color: '#64748b', textTransform: 'uppercase', gridColumn: '1 / -1' }}>
+                          Weights &amp; Prices (PKR)
+                        </span>
+                        {Object.entries(product.prices).map(([wKey, price]) => (
+                          <div key={wKey} style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                            <label style={{ flex: 1, margin: 0 }}>
+                              {wKey}
+                              <input
+                                type="number"
+                                required
+                                min="1"
+                                step="1"
+                                value={price}
+                                onChange={e =>
+                                  editProduct(product.id, {
+                                    prices: {
+                                      ...product.prices,
+                                      [wKey]: e.target.value === '' ? '' : Number(e.target.value)
+                                    }
+                                  })
+                                }
+                              />
+                            </label>
+                            {Object.keys(product.prices).length > 1 && (
+                              <button
+                                type="button"
+                                title="Remove this weight option"
+                                onClick={() => {
+                                  const nextPrices = { ...product.prices };
+                                  delete nextPrices[wKey];
+                                  editProduct(product.id, { prices: nextPrices });
+                                }}
+                                style={{
+                                  background: '#fef2f2',
+                                  color: '#dc2626',
+                                  border: '1px solid #fecaca',
+                                  borderRadius: '6px',
+                                  padding: '4px 8px',
+                                  cursor: 'pointer',
+                                  fontSize: '0.75rem',
+                                  fontWeight: 'bold',
+                                  marginTop: '16px'
+                                }}
+                              >
+                                ✕
+                              </button>
+                            )}
+                          </div>
                         ))}
+                        <button
+                          type="button"
+                          onClick={() => {
+                            const newWeight = prompt('Enter new weight label (e.g. 750g, 1kg, 2kg, 6 pcs):', '750g');
+                            if (newWeight && newWeight.trim()) {
+                              const label = newWeight.trim();
+                              editProduct(product.id, {
+                                prices: {
+                                  ...product.prices,
+                                  [label]: 100
+                                }
+                              });
+                            }
+                          }}
+                          style={{
+                            gridColumn: '1 / -1',
+                            padding: '6px 12px',
+                            background: '#f0fdf4',
+                            border: '1px borderdashed #86efac',
+                            color: '#166534',
+                            borderRadius: '8px',
+                            fontWeight: 600,
+                            fontSize: '0.8rem',
+                            cursor: 'pointer'
+                          }}
+                        >
+                          + Add New Weight Option
+                        </button>
                       </div>
                       <label>
                         Availability

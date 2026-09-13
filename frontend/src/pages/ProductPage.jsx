@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { api } from '../services/api';
 import { useCart } from '../context/CartContext';
+import { calculatePriceForWeight } from '../utils/weightUtils';
 import Seo from '../components/Seo';
 import NutritionSection from '../components/NutritionSection';
 import BenefitsSection from '../components/BenefitsSection';
@@ -9,7 +10,6 @@ import CookingUsesSection from '../components/CookingUsesSection';
 import StorageSection from '../components/StorageSection';
 import ProductFAQ from '../components/ProductFAQ';
 import OrderCallToAction from '../components/OrderCallToAction';
-
 import DeliveryBadges from '../components/DeliveryBadges';
 
 export default function ProductPage({ product: initialProduct }) {
@@ -17,14 +17,19 @@ export default function ProductPage({ product: initialProduct }) {
   const [product, setProduct] = useState(initialProduct || null);
   const [loading, setLoading] = useState(!initialProduct);
   const [error, setError] = useState(null);
-  const [weight, setWeight] = useState('');
+  
+  const [selectedWeight, setSelectedWeight] = useState('');
+  const [isCustom, setIsCustom] = useState(false);
+  const [customVal, setCustomVal] = useState('750');
+  const [customUnit, setCustomUnit] = useState('g');
+
   const [qty, setQty] = useState(1);
   const { add } = useCart();
 
   useEffect(() => {
     if (initialProduct && initialProduct.slug === slug) {
       setProduct(initialProduct);
-      setWeight(Object.keys(initialProduct.prices)[0]);
+      setSelectedWeight(Object.keys(initialProduct.prices)[0] || '250g');
       setLoading(false);
       return;
     }
@@ -35,7 +40,7 @@ export default function ProductPage({ product: initialProduct }) {
         const found = data.find(p => p.slug === slug);
         if (found) {
           setProduct(found);
-          setWeight(Object.keys(found.prices)[0]);
+          setSelectedWeight(Object.keys(found.prices)[0] || '250g');
         } else {
           setError('Product not found.');
         }
@@ -76,8 +81,17 @@ export default function ProductPage({ product: initialProduct }) {
     );
   }
 
-  const activeWeight = weight || Object.keys(product.prices)[0];
-  const minPrice = product.prices[activeWeight] || Object.values(product.prices)[0];
+  // Weight Calculation Logic
+  const baseKeys = Object.keys(product.prices);
+  const isPcs = baseKeys.some(k => k.includes('pc'));
+  const presetList = isPcs
+    ? Array.from(new Set([...baseKeys, '2 pcs', '4 pcs', '6 pcs', '10 pcs']))
+    : Array.from(new Set([...baseKeys, '250g', '500g', '750g', '1kg', '1.5kg', '2kg', '5kg']));
+
+  const activeWeightString = isCustom ? `${customVal || 0}${customUnit}` : selectedWeight;
+  const unitPrice = calculatePriceForWeight(product.prices, activeWeightString);
+  const totalPrice = unitPrice * qty;
+
   const siteUrl = (import.meta.env.VITE_SITE_URL || window.location.origin).replace(/\/$/, '');
   const imagePath = '/' + product.image.replace(/\.png$/i, '.webp').replace(/^\//, '');
   const fullImageUrl = `${siteUrl}${imagePath}`;
@@ -85,7 +99,7 @@ export default function ProductPage({ product: initialProduct }) {
 
   // SEO Title & Description
   const seoTitle = `${product.name} (${product.urdu}) - Ready-to-Cook Fresh-Cut Vegetables Karachi | FreshCut`;
-  const seoDescription = `Order fresh-cut ${product.name.toLowerCase()} (${product.urdu}) online in Karachi starting at Rs. ${minPrice}. ${product.shortDescription || product.description} Triple-washed, ready-to-cook vegetables with free next-day delivery in Karachi.`;
+  const seoDescription = `Order fresh-cut ${product.name.toLowerCase()} (${product.urdu}) online in Karachi starting at Rs. ${unitPrice}. ${product.shortDescription || product.description} Triple-washed, ready-to-cook vegetables with free next-day delivery in Karachi.`;
 
   // Schemas: Product + FAQPage
   const productSchema = {
@@ -98,7 +112,7 @@ export default function ProductPage({ product: initialProduct }) {
     offers: {
       '@type': 'Offer',
       priceCurrency: 'PKR',
-      price: minPrice,
+      price: unitPrice,
       availability: product.active !== false ? 'https://schema.org/InStock' : 'https://schema.org/OutOfStock',
       url: canonicalUrl
     }
@@ -123,7 +137,7 @@ export default function ProductPage({ product: initialProduct }) {
 
   const handleAddToBag = () => {
     for (let i = 0; i < qty; i++) {
-      add(product, activeWeight);
+      add(product, activeWeightString, unitPrice);
     }
   };
 
@@ -138,7 +152,7 @@ export default function ProductPage({ product: initialProduct }) {
       />
 
       <main className="mx-auto max-w-6xl px-5 py-10">
-        {/* Breadcrumbs & Navigation */}
+        {/* Breadcrumbs */}
         <nav aria-label="Breadcrumb" className="mb-6">
           <ol className="flex items-center space-x-2 text-sm text-slate-500">
             <li>
@@ -157,14 +171,14 @@ export default function ProductPage({ product: initialProduct }) {
           </ol>
         </nav>
 
-        {/* Section 1: Hero / Product Introduction */}
+        {/* Hero / Introduction */}
         <section className="grid gap-10 md:grid-cols-2 items-start" aria-labelledby="product-title">
           <div className="overflow-hidden rounded-3xl bg-green-50 border border-emerald-100/60 shadow-xs">
             <img
               src={imagePath}
               alt={`Hygienically prepped ${product.name} (${product.urdu}) - ready-to-cook fresh-cut vegetables delivery in Karachi`}
               loading="eager"
-              className="h-full w-full object-cover max-h-[480px] w-full"
+              className="h-full w-full object-cover max-h-[480px]"
             />
           </div>
 
@@ -188,47 +202,109 @@ export default function ProductPage({ product: initialProduct }) {
               {product.shortDescription || product.description}
             </p>
 
-            {/* Pack Sizes & Prices */}
+            {/* Pack Sizes & Custom Weight Selection */}
             <div className="my-6 rounded-2xl bg-slate-50 p-5 border border-slate-200/80">
-              <label className="block text-xs font-bold uppercase tracking-wider text-slate-500 mb-2">
-                Select Available Pack Size
-              </label>
-              <div className="grid grid-cols-2 gap-4 mb-4">
-                <select
-                  aria-label="Select pack weight"
-                  className="field text-base font-semibold text-slate-800 bg-white"
-                  value={activeWeight}
-                  onChange={e => setWeight(e.target.value)}
+              <div className="flex justify-between items-center mb-3">
+                <label className="block text-xs font-bold uppercase tracking-wider text-slate-500">
+                  Select Weight or Custom Portion
+                </label>
+                <button
+                  type="button"
+                  onClick={() => setIsCustom(!isCustom)}
+                  className="text-xs font-bold text-emerald-700 hover:underline cursor-pointer"
                 >
-                  {Object.keys(product.prices).map(w => (
-                    <option key={w} value={w}>
-                      {w} — Rs. {product.prices[w]}
-                    </option>
-                  ))}
-                </select>
-
-                <div className="field flex justify-around items-center bg-white" aria-label="Quantity selector">
-                  <button
-                    onClick={() => setQty(Math.max(1, qty - 1))}
-                    aria-label="Decrease quantity"
-                    className="px-3 py-1 font-bold text-slate-600 hover:text-emerald-700 cursor-pointer"
-                  >
-                    −
-                  </button>
-                  <b className="text-slate-800">{qty}</b>
-                  <button
-                    onClick={() => setQty(qty + 1)}
-                    aria-label="Increase quantity"
-                    className="px-3 py-1 font-bold text-slate-600 hover:text-emerald-700 cursor-pointer"
-                  >
-                    +
-                  </button>
-                </div>
+                  {isCustom ? '← Back to Presets' : '✏️ Enter Custom Weight'}
+                </button>
               </div>
 
-              <div className="flex justify-between items-center pt-3 border-t border-slate-200/80 text-xl font-bold text-slate-900">
-                <span>Subtotal ({qty} pack):</span>
-                <span className="text-2xl text-emerald-700">Rs. {minPrice * qty}</span>
+              {/* Weight Pill Buttons */}
+              {!isCustom ? (
+                <div className="flex flex-wrap gap-2 mb-4">
+                  {presetList.map(w => {
+                    const price = calculatePriceForWeight(product.prices, w);
+                    const isSelected = selectedWeight === w;
+                    return (
+                      <button
+                        key={w}
+                        type="button"
+                        onClick={() => setSelectedWeight(w)}
+                        className={`px-3.5 py-2 rounded-xl text-sm font-bold transition-all cursor-pointer border ${
+                          isSelected
+                            ? 'bg-emerald-700 text-white border-emerald-700 shadow-xs'
+                            : 'bg-white text-slate-700 border-slate-200 hover:border-emerald-500'
+                        }`}
+                      >
+                        {w} — Rs. {price}
+                      </button>
+                    );
+                  })}
+                  <button
+                    type="button"
+                    onClick={() => setIsCustom(true)}
+                    className="px-3.5 py-2 rounded-xl text-sm font-bold text-emerald-800 bg-emerald-100/60 hover:bg-emerald-100 border border-emerald-300/60 cursor-pointer"
+                  >
+                    + Custom
+                  </button>
+                </div>
+              ) : (
+                /* Custom Weight Input Mode */
+                <div className="mb-4 bg-white p-4 rounded-xl border border-emerald-200 shadow-xs">
+                  <label className="block text-xs font-bold text-slate-600 mb-2">
+                    Custom Quantity &amp; Unit:
+                  </label>
+                  <div className="flex gap-3">
+                    <input
+                      type="number"
+                      min="1"
+                      step="any"
+                      placeholder="e.g. 750 or 1.5"
+                      className="field flex-1 text-base font-bold text-slate-900"
+                      value={customVal}
+                      onChange={e => setCustomVal(e.target.value)}
+                    />
+                    <select
+                      className="field w-28 text-base font-bold text-slate-900"
+                      value={customUnit}
+                      onChange={e => setCustomUnit(e.target.value)}
+                    >
+                      <option value="g">Grams (g)</option>
+                      <option value="kg">Kilograms (kg)</option>
+                      <option value="pcs">Pieces (pcs)</option>
+                    </select>
+                  </div>
+                  <p className="mt-2 text-xs text-emerald-700 font-semibold">
+                    Calculated price for {activeWeightString}: <b>Rs. {unitPrice}</b>
+                  </p>
+                </div>
+              )}
+
+              {/* Quantity Selector & Total */}
+              <div className="flex justify-between items-center pt-4 border-t border-slate-200/80">
+                <div>
+                  <span className="block text-xs font-bold uppercase tracking-wider text-slate-400">Pack Quantity</span>
+                  <div className="mt-1 flex justify-around items-center bg-white border border-slate-200 rounded-xl w-32 py-1">
+                    <button
+                      onClick={() => setQty(Math.max(1, qty - 1))}
+                      aria-label="Decrease quantity"
+                      className="px-3 text-lg font-bold text-slate-600 hover:text-emerald-700 cursor-pointer"
+                    >
+                      −
+                    </button>
+                    <b className="text-slate-800 text-base">{qty}</b>
+                    <button
+                      onClick={() => setQty(qty + 1)}
+                      aria-label="Increase quantity"
+                      className="px-3 text-lg font-bold text-slate-600 hover:text-emerald-700 cursor-pointer"
+                    >
+                      +
+                    </button>
+                  </div>
+                </div>
+
+                <div className="text-right">
+                  <span className="block text-xs font-bold uppercase tracking-wider text-slate-400">Total Price</span>
+                  <span className="text-3xl font-bold text-emerald-700">Rs. {totalPrice}</span>
+                </div>
               </div>
             </div>
 
@@ -236,7 +312,7 @@ export default function ProductPage({ product: initialProduct }) {
               onClick={handleAddToBag}
               className="btn w-full bg-forest text-white py-4 rounded-2xl text-lg font-bold shadow-md hover:bg-emerald-800 transition-colors cursor-pointer"
             >
-              Add to Bag — Rs. {minPrice * qty}
+              Add to Bag — Rs. {totalPrice}
             </button>
 
             {/* Delivery & Freshness Trust Badges */}
@@ -244,39 +320,39 @@ export default function ProductPage({ product: initialProduct }) {
           </div>
         </section>
 
-        {/* Section 2 & 3: Nutritional Overview & Important Nutrients */}
+        {/* Nutritional Overview */}
         <NutritionSection
           nutritionSummary={product.nutritionSummary}
           nutrients={product.nutrients}
         />
 
-        {/* Section 4: Potential Health Benefits */}
+        {/* Health Benefits */}
         <BenefitsSection
           healthBenefits={product.healthBenefits}
         />
 
-        {/* Section 5, 6 & 7: Description of Cutting Style, Purpose, and Best Cooking Uses */}
+        {/* Cutting Style & Cooking Uses */}
         <CookingUsesSection
           cutDescription={product.cutDescription}
           cookingUses={product.cookingUses}
         />
 
-        {/* Section 8 & 9: Storage Instructions, Preparation & Hygiene Info */}
+        {/* Storage & Hygiene */}
         <StorageSection
           storageInstructions={product.storageInstructions}
           hygieneInformation={product.hygieneInformation}
         />
 
-        {/* Section 11: Frequently Asked Questions */}
+        {/* Product FAQs */}
         <ProductFAQ
           faq={product.faq}
           productName={product.name}
         />
 
-        {/* Section 10 & 12: Order Fresh Call-To-Action */}
+        {/* Order Fresh CTA */}
         <OrderCallToAction
           product={product}
-          activeWeight={activeWeight}
+          activeWeight={activeWeightString}
           qty={qty}
           onAddToBag={handleAddToBag}
         />

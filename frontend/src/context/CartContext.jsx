@@ -1,1 +1,38 @@
-import {createContext,useContext,useEffect,useState} from 'react';const CartContext=createContext();export function CartProvider({children}){const [cart,setCart]=useState(()=>JSON.parse(localStorage.getItem('freshcut-cart')||'[]'));useEffect(()=>localStorage.setItem('freshcut-cart',JSON.stringify(cart)),[cart]);const add=(product,weight)=>setCart(items=>{const found=items.find(x=>x.id===product.id&&x.weight===weight);return found?items.map(x=>x===found?{...x,qty:x.qty+1}:x):[...items,{id:product.id,name:product.name,image:product.image,weight,price:product.prices[weight],qty:1}]});const change=(id,weight,delta)=>setCart(items=>items.map(x=>x.id===id&&x.weight===weight?{...x,qty:x.qty+delta}:x).filter(x=>x.qty>0));return <CartContext.Provider value={{cart,add,change,clear:()=>setCart([])}}>{children}</CartContext.Provider>}export const useCart=()=>useContext(CartContext);
+import { createContext, useContext, useEffect, useState } from 'react';
+import { calculatePriceForWeight } from '../utils/weightUtils';
+
+const CartContext = createContext();
+
+export function CartProvider({ children }) {
+  const [cart, setCart] = useState(() => JSON.parse(localStorage.getItem('freshcut-cart') || '[]'));
+
+  useEffect(() => localStorage.setItem('freshcut-cart', JSON.stringify(cart)), [cart]);
+
+  const add = (product, weight, customPrice) =>
+    setCart(items => {
+      const price = customPrice !== undefined && customPrice !== null
+        ? Number(customPrice)
+        : calculatePriceForWeight(product.prices, weight);
+
+      const found = items.find(x => x.id === product.id && x.weight === weight);
+
+      return found
+        ? items.map(x => (x === found ? { ...x, qty: x.qty + 1 } : x))
+        : [...items, { id: product.id, name: product.name, image: product.image, weight, price, qty: 1 }];
+    });
+
+  const change = (id, weight, delta) =>
+    setCart(items =>
+      items
+        .map(x => (x.id === id && x.weight === weight ? { ...x, qty: x.qty + delta } : x))
+        .filter(x => x.qty > 0)
+    );
+
+  return (
+    <CartContext.Provider value={{ cart, add, change, clear: () => setCart([]) }}>
+      {children}
+    </CartContext.Provider>
+  );
+}
+
+export const useCart = () => useContext(CartContext);

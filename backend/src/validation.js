@@ -36,6 +36,46 @@ export function productChanges(body) {
   if (!Object.keys(data).length) throw badRequest('No product changes supplied');
   return data;
 }
+function parseWeightToQuantity(weightStr) {
+  if (!weightStr) return null;
+  const str = String(weightStr).trim().toLowerCase();
+  const gMatch = str.match(/^(\d+(?:\.\d+)?)\s*(?:g|gram|grams)$/);
+  if (gMatch) return { value: parseFloat(gMatch[1]), unit: 'g' };
+  const kgMatch = str.match(/^(\d+(?:\.\d+)?)\s*(?:kg|kgs|kilo|kilogram|kilograms)$/);
+  if (kgMatch) return { value: parseFloat(kgMatch[1]) * 1000, unit: 'g' };
+  const pcsMatch = str.match(/^(\d+(?:\.\d+)?)\s*(?:pc|pcs|piece|pieces)$/);
+  if (pcsMatch) return { value: parseFloat(pcsMatch[1]), unit: 'pcs' };
+  return null;
+}
+
+function calculatePriceForWeight(prices, targetWeight) {
+  if (!prices || typeof prices !== 'object') return 0;
+  if (prices[targetWeight] !== undefined && Number.isFinite(Number(prices[targetWeight]))) {
+    return Number(prices[targetWeight]);
+  }
+  const target = parseWeightToQuantity(targetWeight);
+  if (!target || target.value <= 0) return 0;
+  let bestRatePerUnit = null;
+  let minDiff = Infinity;
+  for (const [wKey, wPrice] of Object.entries(prices)) {
+    const p = Number(wPrice);
+    if (!Number.isFinite(p) || p <= 0) continue;
+    const base = parseWeightToQuantity(wKey);
+    if (base && base.unit === target.unit && base.value > 0) {
+      const rate = p / base.value;
+      const diff = Math.abs(target.value - base.value);
+      if (diff < minDiff || !bestRatePerUnit) {
+        minDiff = diff;
+        bestRatePerUnit = rate;
+      }
+    }
+  }
+  if (bestRatePerUnit) {
+    return Math.max(1, Math.round(bestRatePerUnit * target.value));
+  }
+  return Number(Object.values(prices)[0]) || 0;
+}
+
 export async function priceOrder(body, findProduct) {
   const customer = {};
   for (const key of ['name','phone','address']) {
@@ -54,9 +94,14 @@ export async function priceOrder(body, findProduct) {
   for (const item of body.items) {
     if (!item || !Number.isSafeInteger(item.qty) || item.qty < 1 || item.qty > 100 || typeof item.weight !== 'string') throw badRequest('Invalid item quantity or weight');
     const product = await findProduct(productId(item.id));
-    if (!product || product.active === false || !Object.hasOwn(product.prices, item.weight)) throw badRequest('An item or weight is unavailable');
-    const price = product.prices[item.weight];
+    if (!product || product.active === false) throw badRequest('An item or weight is unavailable');
+    
+    let price = product.prices[item.weight];
+    if (price === undefined || !Number.isSafeInteger(price)) {
+      price = calculatePriceForWeight(product.prices, item.weight);
+    }
     if (!Number.isSafeInteger(price) || price < 1) throw badRequest('An item price is unavailable');
+
     total += price * item.qty;
     if (!Number.isSafeInteger(total) || total > 2147483647) throw badRequest('Order total is too large');
     items.push({id:product.id,name:product.name,image:product.image || '',weight:item.weight,price,qty:item.qty});
