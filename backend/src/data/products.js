@@ -435,7 +435,7 @@ export default [
   },
   {
     id: 11,
-    name: 'Green Capsicum',
+    name: 'Green Capsicum ',
     slug: 'green-capsicum',
     urdu: 'شملہ مرچ',
     cat: 'Whole',
@@ -1000,12 +1000,12 @@ export default [
   },
   {
     id: 25,
-    name: 'Brown Fried Onions',
+    name: 'Bitter Gourd Sliced',
     slug: 'brown-fried-onions',
-    urdu: 'براؤن فرائی پیاز',
-    cat: 'Ready-to-cook',
+    urdu: 'کریلے',
+    cat: 'Pre-cut',
     icon: '🧅',
-    image: 'assets/products/chopped-onion.webp',
+    image: 'assets/products/Bitter-gourd-sliced.webp',
     description: 'Golden-brown fried onions for biryani, curries and garnishing.',
     shortDescription: 'Crispy golden-brown fried onions (birista) made from thinly sliced onions fried to crunchy perfection in premium cooking oil.',
     nutritionSummary: {
@@ -1044,12 +1044,12 @@ export default [
   },
   {
     id: 26,
-    name: 'Peas, Cabbage, Carrot & Cauliflower Mix',
+    name: 'capsicum china cut',
     slug: 'peas-cabbage-carrot-cauliflower-mix',
-    urdu: 'مٹر، گوبھی، گاجر مکس',
-    cat: 'Mixes',
+    urdu: 'شملہ مرچ کٹی ہوئی',
+    cat: 'Pre-cut',
     icon: '🥗',
-    image: 'assets/products/seasonal-mix.webp',
+    image: 'assets/products/capsicum-china-cut.webp',
     description: 'A fresh family vegetable mix with peas, cabbage, carrot and cauliflower.',
     shortDescription: 'A balanced four-vegetable mix of green peas, shredded cabbage, diced carrots, and cauliflower florets, ready for veg salan or fried rice.',
     nutritionSummary: {
