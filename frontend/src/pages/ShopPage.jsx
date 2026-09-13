@@ -1,6 +1,12 @@
 import { useEffect, useMemo, useState } from 'react';
+import { Link } from 'react-router-dom';
 import { api } from '../services/api';
-import ProductCard from '../components/ProductCard';
+import ProductGrid from '../components/ProductGrid';
+import ProductFilters from '../components/ProductFilters';
+import ProductSearch from '../components/ProductSearch';
+import Pagination from '../components/Pagination';
+
+const HOME_PAGE_SIZE = 8;
 
 export default function ShopPage() {
   const [products, setProducts] = useState([]);
@@ -8,6 +14,7 @@ export default function ShopPage() {
   const [error, setError] = useState(null);
   const [query, setQuery] = useState('');
   const [category, setCategory] = useState('All');
+  const [currentPage, setCurrentPage] = useState(1);
 
   function fetchProducts() {
     setLoading(true);
@@ -27,8 +34,13 @@ export default function ShopPage() {
     fetchProducts();
   }, []);
 
-  const cats = ['All', ...new Set(products.map(p => p.cat))];
-  const list = useMemo(
+  const categories = useMemo(() => {
+    const set = new Set(products.map(p => p.cat).filter(Boolean));
+    return ['All', ...Array.from(set)];
+  }, [products]);
+
+  // Filter products
+  const filteredList = useMemo(
     () =>
       products.filter(
         p =>
@@ -39,8 +51,29 @@ export default function ShopPage() {
     [products, query, category]
   );
 
+  // Pagination for homepage
+  const totalProducts = filteredList.length;
+  const totalPages = Math.ceil(totalProducts / HOME_PAGE_SIZE) || 1;
+  const activePage = Math.min(Math.max(1, currentPage), totalPages);
+
+  const paginatedList = useMemo(() => {
+    const start = (activePage - 1) * HOME_PAGE_SIZE;
+    return filteredList.slice(start, start + HOME_PAGE_SIZE);
+  }, [filteredList, activePage]);
+
+  const handleCategoryChange = (cat) => {
+    setCategory(cat);
+    setCurrentPage(1);
+  };
+
+  const handleSearchChange = (q) => {
+    setQuery(q);
+    setCurrentPage(1);
+  };
+
   return (
     <>
+      {/* Hero Banner */}
       <section className="relative min-h-[560px] overflow-hidden bg-forest">
         <img
           src="/assets/hero.png"
@@ -60,81 +93,81 @@ export default function ShopPage() {
           <p className="mt-6 max-w-xl text-lg text-green-50">
             Clean, hygienically cut vegetables—ready for your karahi.
           </p>
-          <a href="#products" className="btn mt-8 inline-block bg-lime text-forest">
+          <a href="#products" className="btn mt-8 inline-block bg-lime text-forest font-bold">
             Shop fresh cuts →
           </a>
         </div>
       </section>
 
+      {/* How It Works Section */}
+      <section id="how-it-works" className="bg-slate-50 py-16 px-6 border-b border-slate-200">
+        <div className="mx-auto max-w-7xl">
+          <div className="text-center max-w-2xl mx-auto mb-12">
+            <span className="text-xs font-bold uppercase tracking-widest text-leaf">Hassle-Free Cooking</span>
+            <h2 className="font-serif text-3xl sm:text-4xl font-bold text-slate-900 mt-1">How FreshCut Works</h2>
+            <p className="text-slate-600 text-sm sm:text-base mt-2">From farm-fresh selection to your kitchen doorstep in 3 simple steps.</p>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+            <div className="bg-white p-6 rounded-2xl border border-slate-200 text-center shadow-xs">
+              <span className="inline-flex h-14 w-14 items-center justify-center rounded-2xl bg-emerald-100 text-2xl font-bold text-emerald-800 mb-4">1</span>
+              <h3 className="text-lg font-bold text-slate-800">Choose Your Cut & Portion</h3>
+              <p className="text-slate-600 text-sm mt-2">Select your vegetables, custom pack weights (from 250g), and preferred cutting style.</p>
+            </div>
+            <div className="bg-white p-6 rounded-2xl border border-slate-200 text-center shadow-xs">
+              <span className="inline-flex h-14 w-14 items-center justify-center rounded-2xl bg-emerald-100 text-2xl font-bold text-emerald-800 mb-4">2</span>
+              <h3 className="text-lg font-bold text-slate-800">Fresh Morning Prep</h3>
+              <p className="text-slate-600 text-sm mt-2">Our kitchen team washes, peels, and cuts your vegetables fresh every morning under strict hygiene.</p>
+            </div>
+            <div className="bg-white p-6 rounded-2xl border border-slate-200 text-center shadow-xs">
+              <span className="inline-flex h-14 w-14 items-center justify-center rounded-2xl bg-emerald-100 text-2xl font-bold text-emerald-800 mb-4">3</span>
+              <h3 className="text-lg font-bold text-slate-800">Doorstep Delivery in Karachi</h3>
+              <p className="text-slate-600 text-sm mt-2">Delivered to your home in temperature-safe, food-grade packaging ready to cook.</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Featured Products Section */}
       <section id="products" className="mx-auto max-w-7xl px-5 py-20">
         <div className="flex flex-col justify-between gap-5 md:flex-row md:items-end">
           <div>
             <p className="font-bold uppercase tracking-widest text-leaf">Today’s fresh picks</p>
             <h2 className="font-serif text-4xl font-bold md:text-6xl">What are you cooking?</h2>
           </div>
-          <input
-            className="field max-w-sm focus-visible:ring-2 focus-visible:ring-forest"
-            aria-label="Search vegetables by English or Urdu name"
-            value={query}
-            onChange={e => setQuery(e.target.value)}
-            placeholder="Search vegetables…"
-          />
+          <ProductSearch value={query} onChange={handleSearchChange} />
         </div>
 
-        <div className="my-7 flex flex-wrap gap-2" role="group" aria-label="Product categories">
-          {cats.map(c => (
-            <button
-              key={c}
-              onClick={() => setCategory(c)}
-              className={`rounded-full px-4 py-2 font-semibold transition-all focus-visible:outline-2 focus-visible:outline-forest ${
-                category === c ? 'bg-forest text-white' : 'border border-forest text-forest hover:bg-forest/10'
-              }`}
-            >
-              {c}
-            </button>
-          ))}
+        <ProductFilters
+          categories={categories}
+          selectedCategory={category}
+          onSelectCategory={handleCategoryChange}
+        />
+
+        <ProductGrid
+          products={paginatedList}
+          loading={loading}
+          error={error}
+          onRetry={fetchProducts}
+        />
+
+        <Pagination
+          currentPage={activePage}
+          totalPages={totalPages}
+          onPageChange={setCurrentPage}
+          scrollToId="products"
+        />
+
+        {/* View All Products CTA Button */}
+        <div className="mt-12 text-center border-t border-slate-200 pt-8">
+          <p className="text-slate-600 font-medium mb-3">Explore our complete range of hygienically cut vegetables</p>
+          <Link
+            to="/products"
+            className="btn inline-flex items-center gap-2 bg-forest text-white px-8 py-4 rounded-2xl text-base font-bold shadow-md hover:bg-emerald-950 transition"
+          >
+            <span>View All {products.length || 47} Products</span>
+            <span>→</span>
+          </Link>
         </div>
-
-        {error && (
-          <div className="my-8 rounded-2xl bg-red-50 p-6 text-center text-red-700 shadow-sm border border-red-200" role="alert">
-            <p className="text-lg font-bold">Unable to load fresh cuts</p>
-            <p className="mt-1 text-sm">{error}</p>
-            <button
-              onClick={fetchProducts}
-              className="mt-4 rounded-xl bg-red-600 px-5 py-2 font-bold text-white transition hover:bg-red-700"
-            >
-              Try Again
-            </button>
-          </div>
-        )}
-
-        {loading ? (
-          <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4" aria-label="Loading products skeleton">
-            {Array.from({ length: 8 }).map((_, i) => (
-              <div key={i} className="panel overflow-hidden animate-pulse">
-                <div className="h-48 w-full bg-slate-200" />
-                <div className="bg-[#302b3b] p-4 space-y-3">
-                  <div className="h-3 w-16 bg-slate-600 rounded" />
-                  <div className="h-5 w-3/4 bg-slate-600 rounded" />
-                  <div className="h-4 w-1/2 bg-slate-700 rounded" />
-                  <div className="h-6 w-20 bg-slate-600 rounded" />
-                  <div className="flex gap-2">
-                    <div className="h-10 w-full bg-slate-700 rounded" />
-                    <div className="h-10 w-16 bg-slate-600 rounded" />
-                  </div>
-                </div>
-              </div>
-            ))}
-          </div>
-        ) : (
-          !error && (
-            <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4">
-              {list.map(p => (
-                <ProductCard key={p.id} product={p} />
-              ))}
-            </div>
-          )
-        )}
       </section>
     </>
   );

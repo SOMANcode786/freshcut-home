@@ -11,9 +11,10 @@ import StorageSection from '../components/StorageSection';
 import ProductFAQ from '../components/ProductFAQ';
 import OrderCallToAction from '../components/OrderCallToAction';
 import DeliveryBadges from '../components/DeliveryBadges';
+import MarketPriceNotice from '../components/MarketPriceNotice';
 
 export default function ProductPage({ product: initialProduct }) {
-  const { slug } = useParams();
+  const { id, slug } = useParams();
   const [product, setProduct] = useState(initialProduct || null);
   const [loading, setLoading] = useState(!initialProduct);
   const [error, setError] = useState(null);
@@ -28,7 +29,7 @@ export default function ProductPage({ product: initialProduct }) {
 
   useEffect(() => {
     window.scrollTo(0, 0);
-    if (initialProduct && initialProduct.slug === slug) {
+    if (initialProduct && (initialProduct.slug === slug || String(initialProduct.id) === String(id))) {
       setProduct(initialProduct);
       setSelectedWeight(Object.keys(initialProduct.prices)[0] || '250g');
       setLoading(false);
@@ -38,7 +39,7 @@ export default function ProductPage({ product: initialProduct }) {
     setError(null);
     api('/products')
       .then(data => {
-        const found = data.find(p => p.slug === slug);
+        const found = data.find(p => (id ? String(p.id) === String(id) : false) || p.slug === slug);
         if (found) {
           setProduct(found);
           setSelectedWeight(Object.keys(found.prices)[0] || '250g');
@@ -51,7 +52,7 @@ export default function ProductPage({ product: initialProduct }) {
         setError(err.message || 'Failed to load product details.');
         setLoading(false);
       });
-  }, [slug, initialProduct]);
+  }, [id, slug, initialProduct]);
 
   if (loading) {
     return (
@@ -96,7 +97,7 @@ export default function ProductPage({ product: initialProduct }) {
   const siteUrl = (import.meta.env.VITE_SITE_URL || window.location.origin).replace(/\/$/, '');
   const imagePath = '/' + product.image.replace(/\.png$/i, '.webp').replace(/^\//, '');
   const fullImageUrl = `${siteUrl}${imagePath}`;
-  const canonicalUrl = `${siteUrl}/product/${product.slug}`;
+  const canonicalUrl = `${siteUrl}/products/${product.id}/${product.slug}`;
 
   // SEO Title & Description
   const seoTitle = `${product.name} Delivery in Karachi | FreshCut Home`;
@@ -136,8 +137,8 @@ export default function ProductPage({ product: initialProduct }) {
       {
         '@type': 'ListItem',
         position: 2,
-        name: product.cat,
-        item: `${siteUrl}/#shop`
+        name: 'All Products',
+        item: `${siteUrl}/products`
       },
       {
         '@type': 'ListItem',
@@ -359,6 +360,9 @@ export default function ProductPage({ product: initialProduct }) {
                 </div>
               </div>
             </div>
+
+            {/* Urdu Market Price Notice directly below price & above Add to Bag button */}
+            <MarketPriceNotice variant="full" className="mb-4" />
 
             <button
               onClick={handleAddToBag}

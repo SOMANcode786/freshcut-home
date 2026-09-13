@@ -4003,5 +4003,293 @@ export default [
       "2kg": 469
     },
     "altText": "Fresh whole red onions packed by FreshCut Home"
+  },
+  {
+    "id": 50,
+    "name": "Whole Potatoes",
+    "slug": "whole-potatoes",
+    "urdu": "ثابت آلو",
+    "cat": "Whole Vegetables",
+    "icon": "🥔",
+    "image": "assets/products/potato-whole.webp",
+    "description": "Farm-fresh whole potatoes selected for firm skin, smooth texture, and optimal starch levels. Perfect for daily curry gravies, baking, boiling, or frying.",
+    "shortDescription": "Handpicked firm whole potatoes sorted for clean quality, perfect for daily karahis, aloo bhujia, boiling, and roasting.",
+    "nutritionSummary": {
+      "calories": "77 kcal",
+      "carbs": "17.5g",
+      "protein": "2.0g",
+      "fat": "0.1g",
+      "fiber": "2.2g",
+      "keyVitamins": "Vitamin C, Vitamin B6, Potassium, Iron"
+    },
+    "nutrients": [
+      {
+        "name": "Potassium",
+        "amount": "425 mg",
+        "benefit": "Supports healthy muscle contraction and fluid balance."
+      },
+      {
+        "name": "Vitamin C",
+        "amount": "19.7 mg",
+        "benefit": "Essential antioxidant supporting collagen and immunity."
+      },
+      {
+        "name": "Dietary Fiber",
+        "amount": "2.2 g",
+        "benefit": "Promotes satiety and healthy digestion."
+      }
+    ],
+    "healthBenefits": [
+      {
+        "title": "Energy & Vitality Source",
+        "description": "Rich in complex carbohydrates that provide steady daily energy."
+      },
+      {
+        "title": "Heart & Electrolyte Balance",
+        "description": "High potassium content helps regulate blood pressure."
+      },
+      {
+        "title": "Culinary Versatility",
+        "description": "An indispensable kitchen staple suitable for roasting, mashing, boiling, and curries."
+      }
+    ],
+    "cutDescription": "Whole unpeeled firm potatoes sorted and washed clean.",
+    "cookingUses": [
+      {
+        "title": "Aloo Gosht & Curries",
+        "description": "Peel and chunk freshly into Pakistani beef, mutton, or chicken curries."
+      },
+      {
+        "title": "Boiled & Mashed Prep",
+        "description": "Boil for cutlets, aloo parathas, or creamy mashed potatoes."
+      }
+    ],
+    "storageInstructions": "Store in a dark, dry, well-ventilated basket away from direct sunlight. Keeps fresh for up to 3 weeks.",
+    "hygieneInformation": "Inspected for solid texture, smooth skin, and freedom from green spots or sprouts.",
+    "faq": [
+      {
+        "question": "How should I store whole potatoes?",
+        "answer": "Keep them in a cool, dark pantry in a breathable basket."
+      },
+      {
+        "question": "Are these potatoes suitable for frying?",
+        "answer": "Yes, they have a balanced starch content ideal for fries, curries, and roasting."
+      }
+    ],
+    "prices": {
+      "1kg": 189,
+      "2kg": 359
+    },
+    "altText": "Fresh farm-selected whole potatoes by FreshCut Home"
+  },
+  {
+    "id": 51,
+    "name": "Potato Cubes (Aloo Cubes)",
+    "slug": "potato-cubes",
+    "urdu": "آلو کیوبز",
+    "cat": "Pre-Cut Vegetables",
+    "icon": "🥔",
+    "image": "assets/products/potato-cube-cut.webp",
+    "description": "Freshly peeled and uniformly diced potato cubes ready for cooking. Ideal for biryanis, samosa stuffing, aloo gosht, and mixed vegetable curries.",
+    "shortDescription": "Hygienically peeled and medium-diced potato cubes, ready to drop straight into your biryanis, salan, and samosa fillings.",
+    "nutritionSummary": {
+      "calories": "77 kcal",
+      "carbs": "17.5g",
+      "protein": "2.0g",
+      "fat": "0.1g",
+      "fiber": "2.2g",
+      "keyVitamins": "Vitamin C, Vitamin B6, Potassium"
+    },
+    "nutrients": [
+      {
+        "name": "Potassium",
+        "amount": "425 mg",
+        "benefit": "Helps maintain healthy cellular hydration."
+      },
+      {
+        "name": "Vitamin B6",
+        "amount": "0.3 mg",
+        "benefit": "Supports brain function and metabolic health."
+      }
+    ],
+    "healthBenefits": [
+      {
+        "title": "Effortless Cooking",
+        "description": "Saves 15+ minutes of tedious peeling and dicing."
+      },
+      {
+        "title": "Uniform Cooking Rate",
+        "description": "Evenly sized cubes cook consistently without raw centers."
+      }
+    ],
+    "cutDescription": "Uniformly peeled and diced into 1.5cm cubes.",
+    "cookingUses": [
+      {
+        "title": "Biryani & Salan Addition",
+        "description": "Drop directly into boiling gravy or biryani layers."
+      },
+      {
+        "title": "Samosa & Roll Filling",
+        "description": "Boil quickly with spices for delicious samosa stuffing."
+      }
+    ],
+    "storageInstructions": "Keep refrigerated in sealed food-grade pack at 2-4°C. Best cooked within 4-5 days.",
+    "hygieneInformation": "Peeled, washed in chilled purified water, diced, and packed immediately.",
+    "faq": [
+      {
+        "question": "Do I need to wash them before cooking?",
+        "answer": "No, they are pre-washed in food-safe purified water and ready to cook."
+      },
+      {
+        "question": "How do they stay fresh without browning?",
+        "answer": "Rinsed in cold purified water and packed in oxygen-controlled barrier packaging."
+      }
+    ],
+    "prices": {
+      "250g": 85,
+      "500g": 149,
+      "1kg": 279
+    },
+    "altText": "Freshly peeled and diced potato cubes by FreshCut Home"
+  },
+  {
+    "id": 52,
+    "name": "Sliced Sponge Gourd (Torai)",
+    "slug": "sliced-torai-sponge-gourd",
+    "urdu": "توری سلائس",
+    "cat": "Pre-Cut Vegetables",
+    "icon": "🥒",
+    "image": "assets/products/sponge-gourd-slices.webp",
+    "description": "Tender fresh sponge gourds (Torai) peeled and sliced into even rounds. Low in calories, hydrating, and ideal for quick sabzi, daal torai, and light Pakistani curries.",
+    "shortDescription": "Tender green Torai peeled and neatly cut into round slices, ready for quick, light, and healthy daily vegetable curries.",
+    "nutritionSummary": {
+      "calories": "20 kcal",
+      "carbs": "4.3g",
+      "protein": "1.2g",
+      "fat": "0.2g",
+      "fiber": "1.1g",
+      "keyVitamins": "Vitamin A, Vitamin C, Magnesium, Potassium"
+    },
+    "nutrients": [
+      {
+        "name": "Magnesium",
+        "amount": "14 mg",
+        "benefit": "Aids muscle relaxation and metabolic wellness."
+      },
+      {
+        "name": "Vitamin A",
+        "amount": "410 IU",
+        "benefit": "Supports eye health and skin immunity."
+      }
+    ],
+    "healthBenefits": [
+      {
+        "title": "Hydrating & Weight-Friendly",
+        "description": "High water content and low calories make it ideal for light meals."
+      },
+      {
+        "title": "Gentle on Digestion",
+        "description": "Easily digestible gourd perfect for light family dinners."
+      }
+    ],
+    "cutDescription": "Peeled ridge skin and sliced into 5mm clean rounds.",
+    "cookingUses": [
+      {
+        "title": "Torai Ki Sabzi",
+        "description": "Saute with onion, cumin, tomatoes, and green chilies."
+      },
+      {
+        "title": "Daal Torai",
+        "description": "Simmer with chana or moong daal for wholesome curry."
+      }
+    ],
+    "storageInstructions": "Keep refrigerated in food-grade pouch at 2-4°C. Use within 4 days.",
+    "hygieneInformation": "Sorted for fresh tender pods, peeled, washed, sliced, and sealed.",
+    "faq": [
+      {
+        "question": "Is the skin peeled?",
+        "answer": "Yes, the rough outer ridges are peeled clean before round slicing."
+      },
+      {
+        "question": "Does it cook fast?",
+        "answer": "Yes, tender sliced torai cooks soft within 8-10 minutes."
+      }
+    ],
+    "prices": {
+      "250g": 110,
+      "500g": 199,
+      "1kg": 369
+    },
+    "altText": "Fresh peeled and sliced sponge gourd (torai) by FreshCut Home"
+  },
+  {
+    "id": 53,
+    "name": "Potato Finger Cut (French Fries)",
+    "slug": "potato-fries",
+    "urdu": "آلو فنگر کٹ (فرائز)",
+    "cat": "Pre-Cut Vegetables",
+    "icon": "🍟",
+    "image": "assets/products/potato-fries.webp",
+    "description": "Freshly peeled and finger-cut potato sticks ready for deep frying or air baking. Uniform thickness ensures crispy golden french fries every time.",
+    "shortDescription": "Hygienically peeled and finger-cut potato sticks, ready to deep fry or air-fry into crispy golden homemade fries.",
+    "nutritionSummary": {
+      "calories": "77 kcal",
+      "carbs": "17.5g",
+      "protein": "2.0g",
+      "fat": "0.1g",
+      "fiber": "2.2g",
+      "keyVitamins": "Vitamin C, Vitamin B6, Potassium"
+    },
+    "nutrients": [
+      {
+        "name": "Potassium",
+        "amount": "425 mg",
+        "benefit": "Supports cellular hydration and nerve signaling."
+      },
+      {
+        "name": "Vitamin C",
+        "amount": "19.7 mg",
+        "benefit": "Essential vitamin supporting immunity."
+      }
+    ],
+    "healthBenefits": [
+      {
+        "title": "Kitchen Convenience",
+        "description": "Zero chopping mess—straight from fridge to fryer."
+      },
+      {
+        "title": "Perfect Fry Texture",
+        "description": "Uniform cut thickness cooks evenly with crunchy exterior."
+      }
+    ],
+    "cutDescription": "Peeled and cut into 8mm x 8mm french fry sticks.",
+    "cookingUses": [
+      {
+        "title": "Deep Frying",
+        "description": "Fry in hot oil at 180°C for 4-5 minutes until golden brown."
+      },
+      {
+        "title": "Air Frying & Baking",
+        "description": "Toss in oil and spices, air-fry at 200°C for 15 minutes."
+      }
+    ],
+    "storageInstructions": "Refrigerate at 2-4°C sealed in pack. Best fried within 4 days.",
+    "hygieneInformation": "Peeled, washed in purified chilled water, finger-cut, and vacuum sealed.",
+    "faq": [
+      {
+        "question": "Are these suitable for air frying?",
+        "answer": "Yes! Lightly brush with oil and air fry for crisp golden fries."
+      },
+      {
+        "question": "Are they pre-cooked or frozen?",
+        "answer": "They are 100% fresh, raw, pre-cut potatoes (never frozen or chemical treated)."
+      }
+    ],
+    "prices": {
+      "250g": 90,
+      "500g": 160,
+      "1kg": 299
+    },
+    "altText": "Freshly cut potato fries sticks by FreshCut Home"
   }
 ];

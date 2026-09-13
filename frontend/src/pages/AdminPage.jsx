@@ -523,7 +523,7 @@ export default function AdminPage() {
                       </span>
                     </div>
                     <div className="admin-product-fields">
-                      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px' }}>
+                      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
                         <label>
                           Category
                           <input
@@ -533,43 +533,35 @@ export default function AdminPage() {
                           />
                         </label>
                         <label>
-                          Slug
+                          Availability
+                          <select
+                            value={product.active === false ? '0' : '1'}
+                            onChange={e => editProduct(product.id, { active: e.target.value === '1' })}
+                          >
+                            <option value="1">In stock</option>
+                            <option value="0">Out of stock</option>
+                          </select>
+                        </label>
+                      </div>
+                      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
+                        <label>
+                          Product Name
                           <input
                             required
-                            value={product.slug || ''}
-                            onChange={e => editProduct(product.id, { slug: e.target.value })}
+                            value={product.name}
+                            onChange={e => editProduct(product.id, { name: e.target.value })}
+                          />
+                        </label>
+                        <label>
+                          Urdu Name
+                          <input
+                            dir="rtl"
+                            style={{ textAlign: 'right' }}
+                            value={product.urdu || ''}
+                            onChange={e => editProduct(product.id, { urdu: e.target.value })}
                           />
                         </label>
                       </div>
-                      <label>
-                        Product Name
-                        <input
-                          required
-                          value={product.name}
-                          onChange={e => editProduct(product.id, { name: e.target.value })}
-                        />
-                      </label>
-                      <label>
-                        Urdu Name
-                        <input
-                          value={product.urdu || ''}
-                          onChange={e => editProduct(product.id, { urdu: e.target.value })}
-                        />
-                      </label>
-                      <label>
-                        Image Path
-                        <input
-                          value={product.image || ''}
-                          onChange={e => editProduct(product.id, { image: e.target.value })}
-                        />
-                      </label>
-                      <label>
-                        Image Alt Text
-                        <input
-                          value={product.altText || ''}
-                          onChange={e => editProduct(product.id, { altText: e.target.value })}
-                        />
-                      </label>
                       <div className="admin-prices">
                         <span style={{ fontSize: '0.75rem', fontWeight: 700, color: '#64748b', textTransform: 'uppercase', gridColumn: '1 / -1' }}>
                           Weights &amp; Prices (PKR)
@@ -638,7 +630,7 @@ export default function AdminPage() {
                             gridColumn: '1 / -1',
                             padding: '6px 12px',
                             background: '#f0fdf4',
-                            border: '1px borderdashed #86efac',
+                            border: '1px dashed #86efac',
                             color: '#166534',
                             borderRadius: '8px',
                             fontWeight: 600,
@@ -649,22 +641,34 @@ export default function AdminPage() {
                           + Add New Weight Option
                         </button>
                       </div>
-                      <label>
-                        Availability
-                        <select
-                          value={product.active === false ? '0' : '1'}
-                          onChange={e => editProduct(product.id, { active: e.target.value === '1' })}
-                        >
-                          <option value="1">In stock</option>
-                          <option value="0">Out of stock</option>
-                        </select>
-                      </label>
                       
                       <details className="admin-product-details-toggle">
                         <summary style={{ cursor: 'pointer', fontWeight: 600, color: '#15803d', margin: '8px 0', fontSize: '0.875rem' }}>
-                          ✏️ Edit Product Sections & SEO Info
+                          ✏️ Edit Slug, Image &amp; SEO Info
                         </summary>
                         <div style={{ display: 'grid', gap: '10px', marginTop: '8px', paddingTop: '8px', borderTop: '1px solid #e2e8f0' }}>
+                          <label>
+                            Slug
+                            <input
+                              required
+                              value={product.slug || ''}
+                              onChange={e => editProduct(product.id, { slug: e.target.value })}
+                            />
+                          </label>
+                          <label>
+                            Image Path
+                            <input
+                              value={product.image || ''}
+                              onChange={e => editProduct(product.id, { image: e.target.value })}
+                            />
+                          </label>
+                          <label>
+                            Image Alt Text
+                            <input
+                              value={product.altText || ''}
+                              onChange={e => editProduct(product.id, { altText: e.target.value })}
+                            />
+                          </label>
                           <label>
                             Short Description
                             <textarea

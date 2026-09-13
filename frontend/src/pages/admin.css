@@ -773,10 +773,15 @@
   font-size: 0.8125rem;
   font-weight: 600;
   color: #475569;
+  min-width: 0;
 }
 
 .admin-product-fields input,
-.admin-product-fields select {
+.admin-product-fields select,
+.admin-product-fields textarea {
+  width: 100%;
+  box-sizing: border-box;
+  min-width: 0;
   padding: 10px 14px;
   border-radius: 10px;
   border: 1px solid var(--admin-border);
@@ -786,7 +791,8 @@
 }
 
 .admin-product-fields input:focus,
-.admin-product-fields select:focus {
+.admin-product-fields select:focus,
+.admin-product-fields textarea:focus {
   border-color: var(--admin-leaf);
   background: #ffffff;
 }

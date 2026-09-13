@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { useCart } from '../context/CartContext';
+import MarketPriceNotice from './MarketPriceNotice';
 
 function Icon({ name, ...props }) {
   const paths = {
@@ -52,11 +53,15 @@ export default function Header({ setCartOpen }) {
           </Link>
           <nav className="fresh-desktop-links" aria-label="Main navigation">
             <Link to="/" className={isHome ? 'fresh-nav-link is-active' : 'fresh-nav-link'} aria-current={isHome ? 'page' : undefined}>Home</Link>
-            <a className="fresh-nav-link" href="/#products">Shop fresh cuts</a>
-            <a className="fresh-nav-link" href="https://wa.me/923112605525">Contact us <Icon name="arrow" width="15" height="15"/></a>
+            <Link to="/products" className={location.pathname === '/products' ? 'fresh-nav-link is-active' : 'fresh-nav-link'} aria-current={location.pathname === '/products' ? 'page' : undefined}>All Products</Link>
+            <a className="fresh-nav-link" href="/#how-it-works">How It Works</a>
+            <a className="fresh-nav-link" href="https://wa.me/923112605525" target="_blank" rel="noopener noreferrer">Contact <Icon name="arrow" width="15" height="15"/></a>
           </nav>
           <div className="fresh-nav-actions">
-            <div className="fresh-location"><Icon name="pin"/><span><small>Delivering in</small><strong>Karachi</strong></span></div>
+            <Link to="/admin" className="fresh-location cursor-pointer hover:opacity-80 transition-opacity" title="Admin Portal" aria-label="Delivering in Karachi — Admin Portal">
+              <Icon name="pin"/>
+              <span><small>Delivering in</small><strong>Karachi</strong></span>
+            </Link>
             <button className="fresh-bag" onClick={openBag} aria-label={`Open shopping bag, ${count} items`}><Icon name="bag"/><span className="fresh-bag-label">My bag</span><span className="fresh-bag-count">{count}</span></button>
             <button className="fresh-menu-toggle" onClick={() => setMenuOpen(!menuOpen)} aria-expanded={menuOpen} aria-controls="fresh-mobile-menu" aria-label={menuOpen ? 'Close navigation menu' : 'Open navigation menu'}><Icon name={menuOpen ? 'close' : 'menu'}/></button>
           </div>
@@ -64,9 +69,12 @@ export default function Header({ setCartOpen }) {
         {menuOpen && (
           <nav id="fresh-mobile-menu" className="fresh-mobile-menu" aria-label="Mobile navigation">
             <Link to="/" onClick={() => setMenuOpen(false)}>Home <Icon name="arrow"/></Link>
-            <a href="/#products" onClick={() => setMenuOpen(false)}>Shop fresh cuts <Icon name="arrow"/></a>
-            <a href="https://wa.me/923112605525" onClick={() => setMenuOpen(false)}>Contact us <Icon name="arrow"/></a>
-            <p><Icon name="pin"/> Freshly prepared for Karachi</p>
+            <Link to="/products" onClick={() => setMenuOpen(false)}>All Products <Icon name="arrow"/></Link>
+            <a href="/#how-it-works" onClick={() => setMenuOpen(false)}>How It Works <Icon name="arrow"/></a>
+            <a href="https://wa.me/923112605525" target="_blank" rel="noopener noreferrer" onClick={() => setMenuOpen(false)}>Contact / WhatsApp <Icon name="arrow"/></a>
+            <Link to="/admin" onClick={() => setMenuOpen(false)} className="flex items-center gap-2 pt-4 text-xs text-slate-600 hover:text-emerald-800 transition-colors border-t border-slate-200/80 cursor-pointer">
+              <Icon name="pin"/> <span>Delivering in <strong>Karachi</strong> (Admin Portal)</span>
+            </Link>
           </nav>
         )}
       </header>
