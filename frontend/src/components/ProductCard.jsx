@@ -1,26 +1,25 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useCart } from '../context/CartContext';
-import { calculatePriceForWeight } from '../utils/weightUtils';
+import { calculatePriceForWeight, sanitizeWeightValue } from '../utils/weightUtils';
 
 export default function ProductCard({ product }) {
   const initialWeight = Object.keys(product.prices)[0] || '250g';
   const [selectedWeight, setSelectedWeight] = useState(initialWeight);
   const [isCustom, setIsCustom] = useState(false);
-  const [customVal, setCustomVal] = useState('750');
+  const [customVal, setCustomVal] = useState('250');
   const [customUnit, setCustomUnit] = useState('g');
   const { add } = useCart();
 
   const imageSrc = '/' + product.image.replace(/\.png$/i, '.webp').replace(/^\//, '');
 
-  // Preset options combined with product prices
   const baseKeys = Object.keys(product.prices);
   const isPcs = baseKeys.some(k => k.includes('pc'));
   const presetList = isPcs
     ? Array.from(new Set([...baseKeys, '2 pcs', '4 pcs', '6 pcs', '10 pcs']))
     : Array.from(new Set([...baseKeys, '250g', '500g', '750g', '1kg', '1.5kg', '2kg']));
 
-  const activeWeightString = isCustom ? `${customVal || 0}${customUnit}` : selectedWeight;
+  const activeWeightString = isCustom ? `${customVal || (customUnit === 'kg' ? '0.25' : '250')}${customUnit}` : selectedWeight;
   const currentPrice = calculatePriceForWeight(product.prices, activeWeightString);
 
   const handleWeightChange = (e) => {
@@ -33,8 +32,20 @@ export default function ProductCard({ product }) {
     }
   };
 
+  const handleBlur = () => {
+    if (isPcs) return;
+    setCustomVal(sanitizeWeightValue(customVal, customUnit));
+  };
+
   const handleAdd = () => {
-    add(product, activeWeightString, currentPrice);
+    let finalWeight = activeWeightString;
+    if (isCustom && !isPcs) {
+      const sanitized = sanitizeWeightValue(customVal, customUnit);
+      setCustomVal(sanitized);
+      finalWeight = `${sanitized}${customUnit}`;
+    }
+    const finalPrice = calculatePriceForWeight(product.prices, finalWeight);
+    add(product, finalWeight, finalPrice);
   };
 
   return (
@@ -73,7 +84,7 @@ export default function ProductCard({ product }) {
               value={isCustom ? 'custom' : selectedWeight}
               onChange={handleWeightChange}
             >
-              <optgroup label="Preset Weights">
+              <optgroup label="Preset Weights (Min 250g)">
                 {presetList.map(w => {
                   const p = calculatePriceForWeight(product.prices, w);
                   return (
@@ -83,7 +94,7 @@ export default function ProductCard({ product }) {
                   );
                 })}
               </optgroup>
-              <option value="custom">✏️ Custom Weight...</option>
+              <option value="custom">✏️ Custom Weight (Min 250g)...</option>
             </select>
 
             {/* Custom Weight Input */}
@@ -91,17 +102,21 @@ export default function ProductCard({ product }) {
               <div className="flex gap-2 items-center bg-slate-800/80 p-2 rounded-xl border border-slate-700">
                 <input
                   type="number"
-                  min="1"
+                  min={customUnit === 'kg' ? '0.25' : '250'}
                   step="any"
-                  placeholder="e.g. 750"
+                  placeholder="Min 250g"
                   className="w-full rounded-lg bg-slate-900 px-2 py-1.5 text-sm text-white font-bold border border-slate-600 focus:outline-none focus:border-lime"
                   value={customVal}
                   onChange={e => setCustomVal(e.target.value)}
+                  onBlur={handleBlur}
                 />
                 <select
                   className="rounded-lg bg-slate-900 px-2 py-1.5 text-sm text-white font-bold border border-slate-600 focus:outline-none focus:border-lime"
                   value={customUnit}
-                  onChange={e => setCustomUnit(e.target.value)}
+                  onChange={e => {
+                    setCustomUnit(e.target.value);
+                    setCustomVal(e.target.value === 'kg' ? '0.25' : '250');
+                  }}
                 >
                   <option value="g">g</option>
                   <option value="kg">kg</option>

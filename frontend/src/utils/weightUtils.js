@@ -1,6 +1,9 @@
 /**
- * Utility functions for parsing weights and calculating prices for standard and custom weights.
+ * Utility functions for parsing weights, enforcing 250g minimum order weight,
+ * and calculating prices for standard and custom weights.
  */
+
+export const MIN_WEIGHT_GRAMS = 250;
 
 // Parse weight strings like "250g", "1.5kg", "500 grams", "2 pcs" into value and unit
 export function parseWeightToQuantity(weightStr) {
@@ -20,6 +23,17 @@ export function parseWeightToQuantity(weightStr) {
   if (pcsMatch) return { value: parseFloat(pcsMatch[1]), unit: 'pcs' };
 
   return null;
+}
+
+// Enforce minimum 250g order weight for gram/kg units
+export function sanitizeWeightValue(value, unit = 'g') {
+  const num = parseFloat(value);
+  if (isNaN(num) || num <= 0) return unit === 'kg' ? '0.25' : '250';
+
+  if (unit === 'g' && num < 250) return '250';
+  if (unit === 'kg' && num < 0.25) return '0.25';
+
+  return String(num);
 }
 
 // Format numeric value + unit back into readable string
@@ -48,6 +62,9 @@ export function calculatePriceForWeight(prices, targetWeight) {
   const target = parseWeightToQuantity(targetWeight);
   if (!target || target.value <= 0) return 0;
 
+  // Clamp target value to minimum 250g if unit is grams
+  const effectiveGrams = target.unit === 'g' ? Math.max(MIN_WEIGHT_GRAMS, target.value) : target.value;
+
   let bestRatePerUnit = null;
   let minDiff = Infinity;
 
@@ -58,7 +75,7 @@ export function calculatePriceForWeight(prices, targetWeight) {
     const base = parseWeightToQuantity(wKey);
     if (base && base.unit === target.unit && base.value > 0) {
       const rate = p / base.value;
-      const diff = Math.abs(target.value - base.value);
+      const diff = Math.abs(effectiveGrams - base.value);
       if (diff < minDiff || !bestRatePerUnit) {
         minDiff = diff;
         bestRatePerUnit = rate;
@@ -67,7 +84,7 @@ export function calculatePriceForWeight(prices, targetWeight) {
   }
 
   if (bestRatePerUnit) {
-    return Math.max(1, Math.round(bestRatePerUnit * target.value));
+    return Math.max(1, Math.round(bestRatePerUnit * effectiveGrams));
   }
 
   // Fallback to first price in map

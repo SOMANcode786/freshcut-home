@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { api } from '../services/api';
 import { useCart } from '../context/CartContext';
-import { calculatePriceForWeight } from '../utils/weightUtils';
+import { calculatePriceForWeight, sanitizeWeightValue } from '../utils/weightUtils';
 import Seo from '../components/Seo';
 import NutritionSection from '../components/NutritionSection';
 import BenefitsSection from '../components/BenefitsSection';
@@ -17,10 +17,10 @@ export default function ProductPage({ product: initialProduct }) {
   const [product, setProduct] = useState(initialProduct || null);
   const [loading, setLoading] = useState(!initialProduct);
   const [error, setError] = useState(null);
-  
+
   const [selectedWeight, setSelectedWeight] = useState('');
   const [isCustom, setIsCustom] = useState(false);
-  const [customVal, setCustomVal] = useState('750');
+  const [customVal, setCustomVal] = useState('250');
   const [customUnit, setCustomUnit] = useState('g');
 
   const [qty, setQty] = useState(1);
@@ -88,7 +88,7 @@ export default function ProductPage({ product: initialProduct }) {
     ? Array.from(new Set([...baseKeys, '2 pcs', '4 pcs', '6 pcs', '10 pcs']))
     : Array.from(new Set([...baseKeys, '250g', '500g', '750g', '1kg', '1.5kg', '2kg', '5kg']));
 
-  const activeWeightString = isCustom ? `${customVal || 0}${customUnit}` : selectedWeight;
+  const activeWeightString = isCustom ? `${customVal || (customUnit === 'kg' ? '0.25' : '250')}${customUnit}` : selectedWeight;
   const unitPrice = calculatePriceForWeight(product.prices, activeWeightString);
   const totalPrice = unitPrice * qty;
 
@@ -135,9 +135,30 @@ export default function ProductPage({ product: initialProduct }) {
     });
   }
 
+  const handleCustomBlur = () => {
+    if (isPcs) return;
+    const sanitized = sanitizeWeightValue(customVal, customUnit);
+    setCustomVal(sanitized);
+  };
+
+  const handleUnitChange = (newUnit) => {
+    setCustomUnit(newUnit);
+    if (!isPcs) {
+      setCustomVal(newUnit === 'kg' ? '0.25' : '250');
+    }
+  };
+
   const handleAddToBag = () => {
+    let finalWeight = activeWeightString;
+    if (isCustom && !isPcs) {
+      const sanitizedVal = sanitizeWeightValue(customVal, customUnit);
+      setCustomVal(sanitizedVal);
+      finalWeight = `${sanitizedVal}${customUnit}`;
+    }
+    const finalPrice = calculatePriceForWeight(product.prices, finalWeight);
+
     for (let i = 0; i < qty; i++) {
-      add(product, activeWeightString, unitPrice);
+      add(product, finalWeight, finalPrice);
     }
   };
 
@@ -206,7 +227,7 @@ export default function ProductPage({ product: initialProduct }) {
             <div className="my-6 rounded-2xl bg-slate-50 p-5 border border-slate-200/80">
               <div className="flex justify-between items-center mb-3">
                 <label className="block text-xs font-bold uppercase tracking-wider text-slate-500">
-                  Select Weight or Custom Portion
+                  Select Pack Weight (Min. 250g)
                 </label>
                 <button
                   type="button"
@@ -250,30 +271,31 @@ export default function ProductPage({ product: initialProduct }) {
                 /* Custom Weight Input Mode */
                 <div className="mb-4 bg-white p-4 rounded-xl border border-emerald-200 shadow-xs">
                   <label className="block text-xs font-bold text-slate-600 mb-2">
-                    Custom Quantity &amp; Unit:
+                    Custom Weight (Minimum 250g / 0.25kg):
                   </label>
                   <div className="flex gap-3">
                     <input
                       type="number"
-                      min="1"
+                      min={customUnit === 'kg' ? '0.25' : '250'}
                       step="any"
-                      placeholder="e.g. 750 or 1.5"
+                      placeholder={customUnit === 'kg' ? 'e.g. 0.75 or 1.5' : 'e.g. 250 or 750'}
                       className="field flex-1 text-base font-bold text-slate-900"
                       value={customVal}
                       onChange={e => setCustomVal(e.target.value)}
+                      onBlur={handleCustomBlur}
                     />
                     <select
-                      className="field w-28 text-base font-bold text-slate-900"
+                      className="field w-32 text-base font-bold text-slate-900"
                       value={customUnit}
-                      onChange={e => setCustomUnit(e.target.value)}
+                      onChange={e => handleUnitChange(e.target.value)}
                     >
                       <option value="g">Grams (g)</option>
                       <option value="kg">Kilograms (kg)</option>
                       <option value="pcs">Pieces (pcs)</option>
                     </select>
                   </div>
-                  <p className="mt-2 text-xs text-emerald-700 font-semibold">
-                    Calculated price for {activeWeightString}: <b>Rs. {unitPrice}</b>
+                  <p className="mt-2 text-xs text-emerald-700 font-semibold flex items-center gap-1">
+                    <span>💡</span> Minimum portion order is 250g. Calculated price for {activeWeightString}: <b>Rs. {unitPrice}</b>
                   </p>
                 </div>
               )}
