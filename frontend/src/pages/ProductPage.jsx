@@ -3,6 +3,14 @@ import { useParams, Link } from 'react-router-dom';
 import { api } from '../services/api';
 import { useCart } from '../context/CartContext';
 import Seo from '../components/Seo';
+import NutritionSection from '../components/NutritionSection';
+import BenefitsSection from '../components/BenefitsSection';
+import CookingUsesSection from '../components/CookingUsesSection';
+import StorageSection from '../components/StorageSection';
+import ProductFAQ from '../components/ProductFAQ';
+import OrderCallToAction from '../components/OrderCallToAction';
+
+import DeliveryBadges from '../components/DeliveryBadges';
 
 export default function ProductPage({ product: initialProduct }) {
   const { slug } = useParams();
@@ -71,19 +79,21 @@ export default function ProductPage({ product: initialProduct }) {
   const activeWeight = weight || Object.keys(product.prices)[0];
   const minPrice = product.prices[activeWeight] || Object.values(product.prices)[0];
   const siteUrl = (import.meta.env.VITE_SITE_URL || window.location.origin).replace(/\/$/, '');
-  const imagePath = '/' + product.image.replace(/\.png$/i, '.webp');
+  const imagePath = '/' + product.image.replace(/\.png$/i, '.webp').replace(/^\//, '');
   const fullImageUrl = `${siteUrl}${imagePath}`;
   const canonicalUrl = `${siteUrl}/product/${product.slug}`;
 
-  const seoTitle = `${product.name} (${product.cat}) | FreshCut Home Karachi`;
-  const seoDescription = `Buy fresh ${product.name} (${product.cat}) online in Karachi starting at Rs. ${minPrice}. Hygienically washed, ready to cook with free next-day delivery.`;
+  // SEO Title & Description
+  const seoTitle = `${product.name} (${product.urdu}) - Ready-to-Cook Fresh-Cut Vegetables Karachi | FreshCut`;
+  const seoDescription = `Order fresh-cut ${product.name.toLowerCase()} (${product.urdu}) online in Karachi starting at Rs. ${minPrice}. ${product.shortDescription || product.description} Triple-washed, ready-to-cook vegetables with free next-day delivery in Karachi.`;
 
+  // Schemas: Product + FAQPage
   const productSchema = {
     '@context': 'https://schema.org',
     '@type': 'Product',
     name: product.name,
     image: fullImageUrl,
-    description: product.description,
+    description: product.shortDescription || product.description,
     category: product.cat,
     offers: {
       '@type': 'Offer',
@@ -94,6 +104,29 @@ export default function ProductPage({ product: initialProduct }) {
     }
   };
 
+  const schemas = [productSchema];
+
+  if (product.faq && Array.isArray(product.faq) && product.faq.length > 0) {
+    schemas.push({
+      '@context': 'https://schema.org',
+      '@type': 'FAQPage',
+      mainEntity: product.faq.map(item => ({
+        '@type': 'Question',
+        name: item.question,
+        acceptedAnswer: {
+          '@type': 'Answer',
+          text: item.answer
+        }
+      }))
+    });
+  }
+
+  const handleAddToBag = () => {
+    for (let i = 0; i < qty; i++) {
+      add(product, activeWeight);
+    }
+  };
+
   return (
     <>
       <Seo
@@ -101,62 +134,152 @@ export default function ProductPage({ product: initialProduct }) {
         description={seoDescription}
         image={imagePath}
         type="product"
-        schema={productSchema}
+        schema={schemas}
       />
-      <main className="mx-auto grid max-w-6xl gap-10 px-5 py-16 md:grid-cols-2">
-        <div className="overflow-hidden rounded-3xl bg-green-50">
-          <img
-            src={imagePath}
-            alt={`${product.name} ${product.cat} fresh cut ready to cook vegetable`}
-            loading="lazy"
-            className="h-full w-full object-cover"
-          />
-        </div>
-        <div className="self-center">
-          <Link to="/" className="mb-7 inline-block text-leaf font-semibold hover:underline">
-            ← Back to products
-          </Link>
-          <p className="font-bold uppercase tracking-widest text-leaf">
-            {product.cat} · Prepared fresh
-          </p>
-          <h1 className="mt-3 font-serif text-5xl font-bold">{product.name}</h1>
-          <p className="mt-2 text-xl text-slate-500" lang="ur">
-            {product.urdu}
-          </p>
-          <p className="my-6 text-lg leading-8 text-slate-600">{product.description}</p>
-          <div className="grid grid-cols-2 gap-4">
-            <select
-              className="field"
-              value={activeWeight}
-              onChange={e => setWeight(e.target.value)}
-            >
-              {Object.keys(product.prices).map(w => (
-                <option key={w}>{w}</option>
-              ))}
-            </select>
-            <div className="field flex justify-around items-center">
-              <button onClick={() => setQty(Math.max(1, qty - 1))} aria-label="Decrease quantity">
-                −
-              </button>
-              <b>{qty}</b>
-              <button onClick={() => setQty(qty + 1)} aria-label="Increase quantity">
-                +
-              </button>
+
+      <main className="mx-auto max-w-6xl px-5 py-10">
+        {/* Breadcrumbs & Navigation */}
+        <nav aria-label="Breadcrumb" className="mb-6">
+          <ol className="flex items-center space-x-2 text-sm text-slate-500">
+            <li>
+              <Link to="/" className="hover:text-emerald-700 hover:underline">
+                Storefront
+              </Link>
+            </li>
+            <li>/</li>
+            <li>
+              <span className="text-slate-400">{product.cat}</span>
+            </li>
+            <li>/</li>
+            <li className="font-semibold text-slate-800" aria-current="page">
+              {product.name}
+            </li>
+          </ol>
+        </nav>
+
+        {/* Section 1: Hero / Product Introduction */}
+        <section className="grid gap-10 md:grid-cols-2 items-start" aria-labelledby="product-title">
+          <div className="overflow-hidden rounded-3xl bg-green-50 border border-emerald-100/60 shadow-xs">
+            <img
+              src={imagePath}
+              alt={`Hygienically prepped ${product.name} (${product.urdu}) - ready-to-cook fresh-cut vegetables delivery in Karachi`}
+              loading="eager"
+              className="h-full w-full object-cover max-h-[480px] w-full"
+            />
+          </div>
+
+          <div className="self-center">
+            <div className="flex items-center gap-2 mb-2">
+              <span className="inline-block px-3 py-1 rounded-full bg-emerald-100 text-emerald-800 text-xs font-bold uppercase tracking-wider">
+                {product.cat}
+              </span>
+              <span className="text-xs text-slate-500 font-medium">• Fresh-Cut Vegetables Karachi</span>
             </div>
+
+            <h1 id="product-title" className="font-serif text-4xl sm:text-5xl font-bold text-slate-900 leading-tight">
+              {product.name}
+            </h1>
+
+            <p className="mt-2 text-2xl font-bold text-emerald-700" lang="ur">
+              {product.urdu}
+            </p>
+
+            <p className="my-5 text-lg leading-relaxed text-slate-600">
+              {product.shortDescription || product.description}
+            </p>
+
+            {/* Pack Sizes & Prices */}
+            <div className="my-6 rounded-2xl bg-slate-50 p-5 border border-slate-200/80">
+              <label className="block text-xs font-bold uppercase tracking-wider text-slate-500 mb-2">
+                Select Available Pack Size
+              </label>
+              <div className="grid grid-cols-2 gap-4 mb-4">
+                <select
+                  aria-label="Select pack weight"
+                  className="field text-base font-semibold text-slate-800 bg-white"
+                  value={activeWeight}
+                  onChange={e => setWeight(e.target.value)}
+                >
+                  {Object.keys(product.prices).map(w => (
+                    <option key={w} value={w}>
+                      {w} — Rs. {product.prices[w]}
+                    </option>
+                  ))}
+                </select>
+
+                <div className="field flex justify-around items-center bg-white" aria-label="Quantity selector">
+                  <button
+                    onClick={() => setQty(Math.max(1, qty - 1))}
+                    aria-label="Decrease quantity"
+                    className="px-3 py-1 font-bold text-slate-600 hover:text-emerald-700 cursor-pointer"
+                  >
+                    −
+                  </button>
+                  <b className="text-slate-800">{qty}</b>
+                  <button
+                    onClick={() => setQty(qty + 1)}
+                    aria-label="Increase quantity"
+                    className="px-3 py-1 font-bold text-slate-600 hover:text-emerald-700 cursor-pointer"
+                  >
+                    +
+                  </button>
+                </div>
+              </div>
+
+              <div className="flex justify-between items-center pt-3 border-t border-slate-200/80 text-xl font-bold text-slate-900">
+                <span>Subtotal ({qty} pack):</span>
+                <span className="text-2xl text-emerald-700">Rs. {minPrice * qty}</span>
+              </div>
+            </div>
+
+            <button
+              onClick={handleAddToBag}
+              className="btn w-full bg-forest text-white py-4 rounded-2xl text-lg font-bold shadow-md hover:bg-emerald-800 transition-colors cursor-pointer"
+            >
+              Add to Bag — Rs. {minPrice * qty}
+            </button>
+
+            {/* Delivery & Freshness Trust Badges */}
+            <DeliveryBadges />
           </div>
-          <div className="my-6 flex justify-between text-2xl">
-            <span>Total</span>
-            <b>Rs. {minPrice * qty}</b>
-          </div>
-          <button
-            onClick={() => {
-              for (let i = 0; i < qty; i++) add(product, activeWeight);
-            }}
-            className="btn w-full bg-forest text-white"
-          >
-            Add to bag
-          </button>
-        </div>
+        </section>
+
+        {/* Section 2 & 3: Nutritional Overview & Important Nutrients */}
+        <NutritionSection
+          nutritionSummary={product.nutritionSummary}
+          nutrients={product.nutrients}
+        />
+
+        {/* Section 4: Potential Health Benefits */}
+        <BenefitsSection
+          healthBenefits={product.healthBenefits}
+        />
+
+        {/* Section 5, 6 & 7: Description of Cutting Style, Purpose, and Best Cooking Uses */}
+        <CookingUsesSection
+          cutDescription={product.cutDescription}
+          cookingUses={product.cookingUses}
+        />
+
+        {/* Section 8 & 9: Storage Instructions, Preparation & Hygiene Info */}
+        <StorageSection
+          storageInstructions={product.storageInstructions}
+          hygieneInformation={product.hygieneInformation}
+        />
+
+        {/* Section 11: Frequently Asked Questions */}
+        <ProductFAQ
+          faq={product.faq}
+          productName={product.name}
+        />
+
+        {/* Section 10 & 12: Order Fresh Call-To-Action */}
+        <OrderCallToAction
+          product={product}
+          activeWeight={activeWeight}
+          qty={qty}
+          onAddToBag={handleAddToBag}
+        />
       </main>
     </>
   );

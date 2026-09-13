@@ -134,12 +134,45 @@ export default function AdminPage() {
     setBusy(`product-${product.id}`);
     setNotice(null);
     try {
+      const payload = {
+        name: product.name,
+        prices: product.prices,
+        active: product.active,
+        shortDescription: product.shortDescription || '',
+        cutDescription: product.cutDescription || '',
+        storageInstructions: product.storageInstructions || '',
+        hygieneInformation: product.hygieneInformation || ''
+      };
+
+      const parseJsonField = (field, label) => {
+        if (product[field] === undefined || product[field] === null) return;
+        if (typeof product[field] === 'string') {
+          if (!product[field].trim()) {
+            payload[field] = null;
+          } else {
+            try {
+              payload[field] = JSON.parse(product[field]);
+            } catch {
+              throw new Error(`Invalid JSON syntax in ${label}. Please enter valid JSON.`);
+            }
+          }
+        } else {
+          payload[field] = product[field];
+        }
+      };
+
+      parseJsonField('nutritionSummary', 'Nutritional Overview');
+      parseJsonField('nutrients', 'Nutrients List');
+      parseJsonField('healthBenefits', 'Health Benefits');
+      parseJsonField('cookingUses', 'Cooking Uses');
+      parseJsonField('faq', 'FAQ List');
+
       const updated = await api(`/products/${product.id}`, {
         method: 'PATCH',
-        body: JSON.stringify({ name: product.name, prices: product.prices, active: product.active })
+        body: JSON.stringify(payload)
       });
       setProducts(items => items.map(p => (p.id === product.id ? updated : p)));
-      setNotice({ text: `${updated.name} saved successfully.` });
+      setNotice({ text: `${updated.name} updated and saved successfully.` });
     } catch (error) {
       failure(error);
     } finally {
@@ -531,6 +564,92 @@ export default function AdminPage() {
                           <option value="0">Out of stock</option>
                         </select>
                       </label>
+                      
+                      <details className="admin-product-details-toggle">
+                        <summary style={{ cursor: 'pointer', fontWeight: 600, color: '#15803d', margin: '8px 0', fontSize: '0.875rem' }}>
+                          ✏️ Edit Product Sections & SEO Info
+                        </summary>
+                        <div style={{ display: 'grid', gap: '10px', marginTop: '8px', paddingTop: '8px', borderTop: '1px solid #e2e8f0' }}>
+                          <label>
+                            Short Description
+                            <textarea
+                              rows={2}
+                              value={product.shortDescription || ''}
+                              onChange={e => editProduct(product.id, { shortDescription: e.target.value })}
+                            />
+                          </label>
+                          <label>
+                            Cutting Style & Purpose
+                            <textarea
+                              rows={2}
+                              value={product.cutDescription || ''}
+                              onChange={e => editProduct(product.id, { cutDescription: e.target.value })}
+                            />
+                          </label>
+                          <label>
+                            Storage Instructions
+                            <textarea
+                              rows={2}
+                              value={product.storageInstructions || ''}
+                              onChange={e => editProduct(product.id, { storageInstructions: e.target.value })}
+                            />
+                          </label>
+                          <label>
+                            Hygiene & Preparation Info
+                            <textarea
+                              rows={2}
+                              value={product.hygieneInformation || ''}
+                              onChange={e => editProduct(product.id, { hygieneInformation: e.target.value })}
+                            />
+                          </label>
+                          <label>
+                            Nutritional Overview (JSON)
+                            <textarea
+                              rows={3}
+                              style={{ fontFamily: 'monospace', fontSize: '0.8rem' }}
+                              value={typeof product.nutritionSummary === 'object' ? JSON.stringify(product.nutritionSummary, null, 2) : (product.nutritionSummary || '')}
+                              onChange={e => editProduct(product.id, { nutritionSummary: e.target.value })}
+                            />
+                          </label>
+                          <label>
+                            Nutrients List (JSON)
+                            <textarea
+                              rows={3}
+                              style={{ fontFamily: 'monospace', fontSize: '0.8rem' }}
+                              value={typeof product.nutrients === 'object' ? JSON.stringify(product.nutrients, null, 2) : (product.nutrients || '')}
+                              onChange={e => editProduct(product.id, { nutrients: e.target.value })}
+                            />
+                          </label>
+                          <label>
+                            Health Benefits (JSON)
+                            <textarea
+                              rows={3}
+                              style={{ fontFamily: 'monospace', fontSize: '0.8rem' }}
+                              value={typeof product.healthBenefits === 'object' ? JSON.stringify(product.healthBenefits, null, 2) : (product.healthBenefits || '')}
+                              onChange={e => editProduct(product.id, { healthBenefits: e.target.value })}
+                            />
+                          </label>
+                          <label>
+                            Best Cooking Uses (JSON)
+                            <textarea
+                              rows={3}
+                              style={{ fontFamily: 'monospace', fontSize: '0.8rem' }}
+                              value={typeof product.cookingUses === 'object' ? JSON.stringify(product.cookingUses, null, 2) : (product.cookingUses || '')}
+                              onChange={e => editProduct(product.id, { cookingUses: e.target.value })}
+                            />
+                          </label>
+                          <label>
+                            FAQs List (JSON)
+                            <textarea
+                              rows={4}
+                              style={{ fontFamily: 'monospace', fontSize: '0.8rem' }}
+                              value={typeof product.faq === 'object' ? JSON.stringify(product.faq, null, 2) : (product.faq || '')}
+                              onChange={e => editProduct(product.id, { faq: e.target.value })}
+                            />
+                          </label>
+                        </div>
+                      </details>
+
                       <button className="admin-primary" disabled={Boolean(busy)}>
                         {busy === `product-${product.id}` ? 'Saving…' : 'Save changes'}
                         <Glyph kind="arrow" />

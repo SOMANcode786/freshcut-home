@@ -1,4 +1,4 @@
-﻿export function badRequest(message) { return Object.assign(new Error(message), {status:400}); }
+export function badRequest(message) { return Object.assign(new Error(message), {status:400}); }
 export function productId(value) {
   if (!/^\d+$/.test(String(value)) || !Number.isSafeInteger(Number(value)) || Number(value) < 1 || Number(value) > 2147483647) throw badRequest('Invalid product ID');
   return Number(value);
@@ -10,6 +10,17 @@ export function productChanges(body) {
     if (key in body) {
       if (typeof body[key] !== 'string' || !body[key].trim()) throw badRequest(`Invalid ${key}`);
       data[key] = body[key].trim();
+    }
+  }
+  for (const key of ['shortDescription','cutDescription','storageInstructions','hygieneInformation']) {
+    if (key in body) {
+      if (typeof body[key] !== 'string') throw badRequest(`Invalid ${key}`);
+      data[key] = body[key].trim();
+    }
+  }
+  for (const key of ['nutritionSummary','nutrients','healthBenefits','cookingUses','faq']) {
+    if (key in body) {
+      data[key] = body[key];
     }
   }
   for (const key of ['active','sale']) {
