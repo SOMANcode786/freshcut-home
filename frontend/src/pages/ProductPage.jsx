@@ -98,17 +98,21 @@ export default function ProductPage({ product: initialProduct }) {
   const canonicalUrl = `${siteUrl}/product/${product.slug}`;
 
   // SEO Title & Description
-  const seoTitle = `${product.name} (${product.urdu}) - Ready-to-Cook Fresh-Cut Vegetables Karachi | FreshCut`;
-  const seoDescription = `Order fresh-cut ${product.name.toLowerCase()} (${product.urdu}) online in Karachi starting at Rs. ${unitPrice}. ${product.shortDescription || product.description} Triple-washed, ready-to-cook vegetables with free next-day delivery in Karachi.`;
+  const seoTitle = `${product.name} Delivery in Karachi | FreshCut Home`;
+  const seoDescription = `Order fresh ${product.name.toLowerCase()} (${product.urdu}) online in Karachi starting at Rs. ${unitPrice}. ${product.description || product.shortDescription}`;
 
-  // Schemas: Product + FAQPage
+  // Schemas: Product + BreadcrumbList + FAQPage
   const productSchema = {
     '@context': 'https://schema.org',
     '@type': 'Product',
     name: product.name,
     image: fullImageUrl,
-    description: product.shortDescription || product.description,
+    description: product.description || product.shortDescription,
     category: product.cat,
+    brand: {
+      '@type': 'Brand',
+      name: 'FreshCut Home'
+    },
     offers: {
       '@type': 'Offer',
       priceCurrency: 'PKR',
@@ -118,7 +122,32 @@ export default function ProductPage({ product: initialProduct }) {
     }
   };
 
-  const schemas = [productSchema];
+  const breadcrumbSchema = {
+    '@context': 'https://schema.org',
+    '@type': 'BreadcrumbList',
+    itemListElement: [
+      {
+        '@type': 'ListItem',
+        position: 1,
+        name: 'Home',
+        item: siteUrl
+      },
+      {
+        '@type': 'ListItem',
+        position: 2,
+        name: product.cat,
+        item: `${siteUrl}/#shop`
+      },
+      {
+        '@type': 'ListItem',
+        position: 3,
+        name: product.name,
+        item: canonicalUrl
+      }
+    ]
+  };
+
+  const schemas = [productSchema, breadcrumbSchema];
 
   if (product.faq && Array.isArray(product.faq) && product.faq.length > 0) {
     schemas.push({
@@ -197,7 +226,7 @@ export default function ProductPage({ product: initialProduct }) {
           <div className="overflow-hidden rounded-3xl bg-green-50 border border-emerald-100/60 shadow-xs">
             <img
               src={imagePath}
-              alt={`Hygienically prepped ${product.name} (${product.urdu}) - ready-to-cook fresh-cut vegetables delivery in Karachi`}
+              alt={product.altText || `Fresh ${product.name} ready to cook by FreshCut Home`}
               loading="eager"
               className="h-full w-full object-cover max-h-[480px]"
             />
@@ -215,7 +244,7 @@ export default function ProductPage({ product: initialProduct }) {
               {product.name}
             </h1>
 
-            <p className="mt-2 text-2xl font-bold text-emerald-700" lang="ur">
+            <p className="mt-2 text-2xl font-bold text-emerald-700" lang="ur" dir="rtl">
               {product.urdu}
             </p>
 

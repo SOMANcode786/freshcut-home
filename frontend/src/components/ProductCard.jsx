@@ -51,10 +51,10 @@ export default function ProductCard({ product }) {
   return (
     <article className="panel overflow-hidden transition hover:-translate-y-1 hover:shadow-xl flex flex-col justify-between">
       <div>
-        <Link to={`/product/${product.slug}`} className="relative block h-48 w-full bg-green-50">
+        <Link to={`/product/${product.slug}`} className="relative block h-48 w-full bg-green-50 focus-visible:outline-2 focus-visible:outline-forest">
           <img
             src={imageSrc}
-            alt={`${product.name} fresh cut vegetable`}
+            alt={product.altText || `Fresh ${product.name} packed by FreshCut Home`}
             loading="lazy"
             className="h-full w-full object-cover"
           />
@@ -66,11 +66,11 @@ export default function ProductCard({ product }) {
         </Link>
         <div className="bg-[#302b3b] p-4 text-white">
           <span className="text-xs font-bold uppercase tracking-wider text-lime">{product.cat}</span>
-          <Link to={`/product/${product.slug}`} className="mt-1 block text-left">
+          <Link to={`/product/${product.slug}`} className="mt-1 block text-left focus-visible:outline-2 focus-visible:outline-lime">
             <h3 className="text-lg font-bold underline decoration-white/40 hover:text-lime transition-colors">
               {product.name} <span className="text-lime/90 font-normal">({activeWeightString})</span>
             </h3>
-            <p className="text-sm text-slate-300 font-medium" lang="ur">
+            <p className="text-sm text-slate-300 font-medium" lang="ur" dir="rtl">
               {product.urdu}
             </p>
           </Link>

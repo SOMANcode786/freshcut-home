@@ -6,13 +6,13 @@ export function productId(value) {
 export function productChanges(body) {
   if (!body || typeof body !== 'object' || Array.isArray(body)) throw badRequest('Invalid product details');
   const data = {};
-  for (const key of ['name','urdu','cat','icon','image','description']) {
+  for (const key of ['name','slug','urdu','cat','icon','image','description']) {
     if (key in body) {
       if (typeof body[key] !== 'string' || !body[key].trim()) throw badRequest(`Invalid ${key}`);
       data[key] = body[key].trim();
     }
   }
-  for (const key of ['shortDescription','cutDescription','storageInstructions','hygieneInformation']) {
+  for (const key of ['altText','shortDescription','cutDescription','storageInstructions','hygieneInformation']) {
     if (key in body) {
       if (typeof body[key] !== 'string') throw badRequest(`Invalid ${key}`);
       data[key] = body[key].trim();

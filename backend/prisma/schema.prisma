@@ -15,6 +15,7 @@ model Product {
   cat                 String
   icon                String
   image               String
+  altText             String?  @default("")
   description         String
   shortDescription    String?  @default("")
   nutritionSummary    Json?

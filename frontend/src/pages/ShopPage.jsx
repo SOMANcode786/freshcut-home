@@ -73,20 +73,21 @@ export default function ShopPage() {
             <h2 className="font-serif text-4xl font-bold md:text-6xl">What are you cooking?</h2>
           </div>
           <input
-            className="field max-w-sm"
+            className="field max-w-sm focus-visible:ring-2 focus-visible:ring-forest"
+            aria-label="Search vegetables by English or Urdu name"
             value={query}
             onChange={e => setQuery(e.target.value)}
             placeholder="Search vegetables…"
           />
         </div>
 
-        <div className="my-7 flex flex-wrap gap-2">
+        <div className="my-7 flex flex-wrap gap-2" role="group" aria-label="Product categories">
           {cats.map(c => (
             <button
               key={c}
               onClick={() => setCategory(c)}
-              className={`rounded-full px-4 py-2 font-semibold ${
-                category === c ? 'bg-forest text-white' : 'border border-forest text-forest'
+              className={`rounded-full px-4 py-2 font-semibold transition-all focus-visible:outline-2 focus-visible:outline-forest ${
+                category === c ? 'bg-forest text-white' : 'border border-forest text-forest hover:bg-forest/10'
               }`}
             >
               {c}

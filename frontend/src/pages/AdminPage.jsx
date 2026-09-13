@@ -523,13 +523,51 @@ export default function AdminPage() {
                       </span>
                     </div>
                     <div className="admin-product-fields">
-                      <span className="admin-eyebrow">{product.cat}</span>
+                      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px' }}>
+                        <label>
+                          Category
+                          <input
+                            required
+                            value={product.cat || ''}
+                            onChange={e => editProduct(product.id, { cat: e.target.value })}
+                          />
+                        </label>
+                        <label>
+                          Slug
+                          <input
+                            required
+                            value={product.slug || ''}
+                            onChange={e => editProduct(product.id, { slug: e.target.value })}
+                          />
+                        </label>
+                      </div>
                       <label>
-                        Product name
+                        Product Name
                         <input
                           required
                           value={product.name}
                           onChange={e => editProduct(product.id, { name: e.target.value })}
+                        />
+                      </label>
+                      <label>
+                        Urdu Name
+                        <input
+                          value={product.urdu || ''}
+                          onChange={e => editProduct(product.id, { urdu: e.target.value })}
+                        />
+                      </label>
+                      <label>
+                        Image Path
+                        <input
+                          value={product.image || ''}
+                          onChange={e => editProduct(product.id, { image: e.target.value })}
+                        />
+                      </label>
+                      <label>
+                        Image Alt Text
+                        <input
+                          value={product.altText || ''}
+                          onChange={e => editProduct(product.id, { altText: e.target.value })}
                         />
                       </label>
                       <div className="admin-prices">
