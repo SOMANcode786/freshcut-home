@@ -27,6 +27,7 @@ export default function ProductPage({ product: initialProduct }) {
   const { add } = useCart();
 
   useEffect(() => {
+    window.scrollTo(0, 0);
     if (initialProduct && initialProduct.slug === slug) {
       setProduct(initialProduct);
       setSelectedWeight(Object.keys(initialProduct.prices)[0] || '250g');

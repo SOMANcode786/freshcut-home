@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Routes, Route, useLocation } from 'react-router-dom';
 import { CartProvider } from './context/CartContext';
 import Header from './components/Header';
@@ -7,6 +7,14 @@ import SeoContent from './components/SeoContent';
 import ShopPage from './pages/ShopPage';
 import ProductPage from './pages/ProductPage';
 import AdminPage from './pages/AdminPage';
+
+function ScrollToTop() {
+  const { pathname } = useLocation();
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, [pathname]);
+  return null;
+}
 
 export default function App() {
   const [cartOpen, setCartOpen] = useState(false);
@@ -19,6 +27,7 @@ export default function App() {
 
   return (
     <CartProvider>
+      <ScrollToTop />
       <Header setCartOpen={setCartOpen} />
       <Routes>
         <Route
