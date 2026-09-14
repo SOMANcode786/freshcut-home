@@ -48,7 +48,7 @@ export default function Header({ setCartOpen }) {
       <header className="fresh-header">
         <div className="fresh-nav">
           <Link to="/" onClick={() => setMenuOpen(false)} className="fresh-brand" aria-label="FreshCut Home — home">
-            <span className="fresh-logo"><img src="/assets/freshcut-logo.png" alt="FreshCut Home — Fresh Cut Vegetables Delivery in Karachi"/></span>
+            <span className="fresh-logo"><img src="/assets/freshcut-logo.webp" alt="FreshCut Home — Fresh Cut Vegetables Delivery in Karachi" width={120} height={40} decoding="async" /></span>
             <span><span className="fresh-brand-name">FreshCut<span> Home</span></span><span className="fresh-brand-tagline">FRESH CUTS. HAPPY KITCHENS.</span></span>
           </Link>
           <nav className="fresh-desktop-links" aria-label="Main navigation">

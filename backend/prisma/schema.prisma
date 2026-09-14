@@ -54,3 +54,18 @@ model Order {
   @@index([status, createdAt])
   @@index([phone])
 }
+
+model Review {
+  id        Int      @id @default(autoincrement())
+  customer  String
+  city      String   @default("Karachi")
+  rating    Int      @default(5)
+  text      String
+  date      String?
+  verified  Boolean  @default(true)
+  published Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([published])
+}

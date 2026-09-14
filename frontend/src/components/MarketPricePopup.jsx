@@ -13,6 +13,7 @@ export default function MarketPricePopup() {
     <div
       dir="rtl"
       lang="ur"
+      role="region"
       aria-label="مارکیٹ قیمت اطلاع پاپ اپ"
       className="fixed bottom-4 left-4 z-50 w-[calc(100%-2rem)] max-w-md rounded-2xl border border-amber-300/90 bg-amber-50/95 p-4 text-amber-950 shadow-2xl backdrop-blur-md transition-all animate-in fade-in slide-in-from-bottom-4 duration-300"
     >

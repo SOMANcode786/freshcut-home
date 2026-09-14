@@ -5,6 +5,7 @@ import ProductGrid from '../components/ProductGrid';
 import ProductFilters from '../components/ProductFilters';
 import ProductSearch from '../components/ProductSearch';
 import Pagination from '../components/Pagination';
+import CustomerReviewsSection from '../components/CustomerReviewsSection';
 
 const HOME_PAGE_SIZE = 8;
 
@@ -76,9 +77,13 @@ export default function ShopPage() {
       {/* Hero Banner */}
       <section className="relative min-h-[560px] overflow-hidden bg-forest">
         <img
-          src="/assets/hero.png"
-          alt="FreshCut vegetables background hero"
+          src="/assets/hero.webp"
+          alt="Fresh cleaned and cut vegetables delivered in Karachi by FreshCut Home"
+          width={1920}
+          height={1080}
           loading="eager"
+          fetchPriority="high"
+          decoding="async"
           className="absolute inset-0 h-full w-full object-cover opacity-55"
         />
         <div className="absolute inset-0 bg-gradient-to-r from-forest via-forest/80 to-transparent" />
@@ -169,6 +174,9 @@ export default function ShopPage() {
           </Link>
         </div>
       </section>
+
+      {/* Customer Reviews Section */}
+      <CustomerReviewsSection />
     </>
   );
 }

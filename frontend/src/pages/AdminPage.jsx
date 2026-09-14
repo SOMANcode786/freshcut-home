@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { api } from '../services/api';
+import OptimizedImage from '../components/OptimizedImage';
 import './admin.css';
 
 const statuses = ['New', 'Confirmed', 'Preparing', 'Out for delivery', 'Delivered', 'Cancelled'];
@@ -14,7 +15,8 @@ function Glyph({ kind = 'grid' }) {
     arrow: 'M4 12h16 M14 6l6 6-6 6',
     logout: 'M10 4H4v16h6 M10 12h11 M16 7l5 5-5 5',
     search: 'M21 21l-6-6 M17 10a7 7 0 1 1-14 0 7 7 0 0 1 14 0',
-    clock: 'M12 8v5l3 2 M22 12a10 10 0 1 1-20 0 10 10 0 0 1 20 0'
+    clock: 'M12 8v5l3 2 M22 12a10 10 0 1 1-20 0 10 10 0 0 1 20 0',
+    star: 'M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z'
   };
   return (
     <svg
@@ -41,12 +43,26 @@ export default function AdminPage() {
   const [tab, setTab] = useState('orders');
   const [products, setProducts] = useState([]);
   const [orders, setOrders] = useState([]);
+  const [reviews, setReviews] = useState([]);
   const [notice, setNotice] = useState(null);
   const [loading, setLoading] = useState(false);
   const [busy, setBusy] = useState('');
   const [query, setQuery] = useState('');
   const [filter, setFilter] = useState('All');
   const [showPassword, setShowPassword] = useState(false);
+
+  // New review form state
+  const [showAddReview, setShowAddReview] = useState(false);
+  const [newReview, setNewReview] = useState({
+    customer: '',
+    city: 'Karachi',
+    rating: 5,
+    text: '',
+    date: new Date().toISOString().split('T')[0],
+    verified: true,
+    published: true
+  });
+  const [editingReviewId, setEditingReviewId] = useState(null);
 
   function failure(error) {
     if (error.status === 401) {
@@ -56,6 +72,7 @@ export default function AdminPage() {
       setAdminUser(null);
       setProducts([]);
       setOrders([]);
+      setReviews([]);
       setNotice({ error: true, text: 'Your session has expired. Please sign in again.' });
     } else {
       setNotice({ error: true, text: error.message || 'Unable to connect. Please try again.' });
@@ -66,13 +83,15 @@ export default function AdminPage() {
     setLoading(true);
     setNotice(null);
     try {
-      const [p, o, u] = await Promise.all([
+      const [p, o, r, u] = await Promise.all([
         api('/products'),
         api('/orders'),
+        api('/reviews').catch(() => []),
         api('/auth/me').catch(() => null)
       ]);
       setProducts(p);
       setOrders(o);
+      setReviews(r);
       if (u?.user) {
         setAdminUser(u.user);
         localStorage.setItem('freshcut-user', JSON.stringify(u.user));
@@ -98,13 +117,11 @@ export default function AdminPage() {
         body: JSON.stringify(Object.fromEntries(new FormData(event.currentTarget)))
       });
       localStorage.setItem('freshcut-token', data.token);
-      if (data.user) {
-        localStorage.setItem('freshcut-user', JSON.stringify(data.user));
-        setAdminUser(data.user);
-      }
+      localStorage.setItem('freshcut-user', JSON.stringify(data.user));
+      setAdminUser(data.user);
       setLogged(true);
     } catch (error) {
-      setNotice({ error: true, text: error.message || 'Invalid email or password' });
+      setNotice({ error: true, text: error.message || 'Invalid credentials' });
     } finally {
       setBusy('');
     }
@@ -117,16 +134,8 @@ export default function AdminPage() {
     setAdminUser(null);
     setProducts([]);
     setOrders([]);
-    setNotice(null);
-    setQuery('');
-    setFilter('All');
-  }
-
-  function switchTab(next) {
-    setTab(next);
-    setQuery('');
-    setFilter('All');
-    setNotice(null);
+    setReviews([]);
+    setNotice({ error: false, text: 'You have signed out safely.' });
   }
 
   async function saveProduct(event, product) {
@@ -134,45 +143,12 @@ export default function AdminPage() {
     setBusy(`product-${product.id}`);
     setNotice(null);
     try {
-      const payload = {
-        name: product.name,
-        prices: product.prices,
-        active: product.active,
-        shortDescription: product.shortDescription || '',
-        cutDescription: product.cutDescription || '',
-        storageInstructions: product.storageInstructions || '',
-        hygieneInformation: product.hygieneInformation || ''
-      };
-
-      const parseJsonField = (field, label) => {
-        if (product[field] === undefined || product[field] === null) return;
-        if (typeof product[field] === 'string') {
-          if (!product[field].trim()) {
-            payload[field] = null;
-          } else {
-            try {
-              payload[field] = JSON.parse(product[field]);
-            } catch {
-              throw new Error(`Invalid JSON syntax in ${label}. Please enter valid JSON.`);
-            }
-          }
-        } else {
-          payload[field] = product[field];
-        }
-      };
-
-      parseJsonField('nutritionSummary', 'Nutritional Overview');
-      parseJsonField('nutrients', 'Nutrients List');
-      parseJsonField('healthBenefits', 'Health Benefits');
-      parseJsonField('cookingUses', 'Cooking Uses');
-      parseJsonField('faq', 'FAQ List');
-
       const updated = await api(`/products/${product.id}`, {
         method: 'PATCH',
-        body: JSON.stringify(payload)
+        body: JSON.stringify(product)
       });
-      setProducts(items => items.map(p => (p.id === product.id ? updated : p)));
-      setNotice({ text: `${updated.name} updated and saved successfully.` });
+      setProducts(products.map(item => (item.id === product.id ? updated : item)));
+      setNotice({ error: false, text: `${product.name} saved successfully!` });
     } catch (error) {
       failure(error);
     } finally {
@@ -180,16 +156,16 @@ export default function AdminPage() {
     }
   }
 
-  async function updateStatus(id, status) {
-    setBusy(`order-${id}`);
+  async function updateOrderStatus(orderId, nextStatus) {
+    setBusy(`order-${orderId}`);
     setNotice(null);
     try {
-      const updated = await api(`/orders/${id}/status`, {
+      const updated = await api(`/orders/${orderId}`, {
         method: 'PATCH',
-        body: JSON.stringify({ status })
+        body: JSON.stringify({ status: nextStatus })
       });
-      setOrders(items => items.map(o => (o.id === id ? updated : o)));
-      setNotice({ text: 'Order status updated.' });
+      setOrders(orders.map(item => (item.id === orderId ? updated : item)));
+      setNotice({ error: false, text: `Order ${updated.orderNumber} updated to ${updated.status}.` });
     } catch (error) {
       failure(error);
     } finally {
@@ -198,107 +174,238 @@ export default function AdminPage() {
   }
 
   function editProduct(id, changes) {
-    setProducts(items => items.map(p => (p.id === id ? { ...p, ...changes } : p)));
+    setProducts(products.map(item => (item.id === id ? { ...item, ...changes } : item)));
   }
 
-  const feedback = notice && (
-    <div className={`admin-notice ${notice.error ? 'is-error' : ''}`} role={notice.error ? 'alert' : 'status'}>
-      {notice.text}
-    </div>
+  function editReviewState(id, changes) {
+    setReviews(reviews.map(item => (item.id === id ? { ...item, ...changes } : item)));
+  }
+
+  // Review CRUD Actions
+  async function handleAddReview(e) {
+    e.preventDefault();
+    if (!newReview.customer.trim() || !newReview.text.trim()) {
+      setNotice({ error: true, text: 'Please fill in customer name and review text.' });
+      return;
+    }
+    setBusy('add-review');
+    setNotice(null);
+    try {
+      const created = await api('/reviews', {
+        method: 'POST',
+        body: JSON.stringify(newReview)
+      });
+      setReviews([created, ...reviews]);
+      setNewReview({
+        customer: '',
+        city: 'Karachi',
+        rating: 5,
+        text: '',
+        date: new Date().toISOString().split('T')[0],
+        verified: true,
+        published: true
+      });
+      setShowAddReview(false);
+      setNotice({ error: false, text: 'Customer review added successfully!' });
+    } catch (error) {
+      failure(error);
+    } finally {
+      setBusy('');
+    }
+  }
+
+  async function handleTogglePublishReview(review) {
+    setBusy(`review-publish-${review.id}`);
+    setNotice(null);
+    try {
+      const updated = await api(`/reviews/${review.id}`, {
+        method: 'PUT',
+        body: JSON.stringify({ published: !review.published })
+      });
+      setReviews(reviews.map(r => (r.id === review.id ? updated : r)));
+      setNotice({
+        error: false,
+        text: `Review by ${updated.customer} set to ${updated.published ? 'Published' : 'Hidden'}.`
+      });
+    } catch (error) {
+      failure(error);
+    } finally {
+      setBusy('');
+    }
+  }
+
+  async function handleSaveReview(e, review) {
+    e.preventDefault();
+    setBusy(`review-${review.id}`);
+    setNotice(null);
+    try {
+      const updated = await api(`/reviews/${review.id}`, {
+        method: 'PUT',
+        body: JSON.stringify(review)
+      });
+      setReviews(reviews.map(r => (r.id === review.id ? updated : r)));
+      setEditingReviewId(null);
+      setNotice({ error: false, text: `Review by ${updated.customer} updated!` });
+    } catch (error) {
+      failure(error);
+    } finally {
+      setBusy('');
+    }
+  }
+
+  async function handleDeleteReview(review) {
+    const confirmed = window.confirm(
+      `Are you sure you want to delete the review by "${review.customer}"?\n\nThis action cannot be undone.`
+    );
+    if (!confirmed) return;
+
+    setBusy(`review-del-${review.id}`);
+    setNotice(null);
+    try {
+      await api(`/reviews/${review.id}`, { method: 'DELETE' });
+      setReviews(reviews.filter(r => r.id !== review.id));
+      setNotice({ error: false, text: 'Review deleted successfully.' });
+    } catch (error) {
+      failure(error);
+    } finally {
+      setBusy('');
+    }
+  }
+
+  const switchTab = nextTab => {
+    setTab(nextTab);
+    setQuery('');
+    setFilter('All');
+  };
+
+  const revenue = orders
+    .filter(order => order.status !== 'Cancelled')
+    .reduce((sum, order) => sum + Number(order.total || 0), 0);
+  const active = orders.filter(
+    order => order.status === 'New' || order.status === 'Confirmed' || order.status === 'Preparing' || order.status === 'Out for delivery'
+  ).length;
+
+  const visibleOrders = orders.filter(order => {
+    const matchesFilter = filter === 'All' || order.status === filter;
+    const matchesQuery =
+      !query ||
+      order.orderNumber.toLowerCase().includes(query.toLowerCase()) ||
+      order.customerName.toLowerCase().includes(query.toLowerCase()) ||
+      order.phone.toLowerCase().includes(query.toLowerCase());
+    return matchesFilter && matchesQuery;
+  });
+
+  const visibleProducts = products.filter(
+    product =>
+      !query ||
+      product.name.toLowerCase().includes(query.toLowerCase()) ||
+      (product.cat || '').toLowerCase().includes(query.toLowerCase())
+  );
+
+  const visibleReviews = reviews.filter(
+    review =>
+      !query ||
+      review.customer.toLowerCase().includes(query.toLowerCase()) ||
+      (review.city || '').toLowerCase().includes(query.toLowerCase()) ||
+      review.text.toLowerCase().includes(query.toLowerCase())
   );
 
   if (!logged) {
     return (
       <main className="admin-login">
         <section className="admin-login-story">
-          <a href="/" className="admin-wordmark">
-            <img src="/assets/freshcut-logo.png" alt="" />
-            FreshCut <span>Home</span>
-          </a>
           <div>
-            <span className="admin-eyebrow">THE FRESHCUT WORKSPACE</span>
-            <h1>A fresh start.<br />Every single day.</h1>
-            <p>Good food begins with thoughtful preparation. Keep your orders, fresh cuts and kitchen running smoothly.</p>
-            <div className="admin-login-tags">
-              <span>Orders, organised</span>
-              <span>Freshness, managed</span>
-            </div>
+            <span className="admin-eyebrow" style={{ color: '#d9ef75' }}>
+              FRESHCUT HOME ADMINISTRATIVE PORTAL
+            </span>
+            <h1>Clean prep.<br />Seamless operations.</h1>
+            <p style={{ marginTop: '16px', color: '#e2e8f0', maxWidth: '480px' }}>
+              Access live orders, update vegetable catalog pricing, and curate genuine customer reviews for home kitchens across Karachi.
+            </p>
           </div>
-          <small>Made for happier kitchens in Karachi.</small>
+          <p style={{ fontSize: '0.85rem', color: '#94a3b8' }}>
+            Protected access. Authorized FreshCut Home personnel only.
+          </p>
         </section>
 
-        <section className="admin-login-panel">
-          <a href="/" className="admin-back">
-            ← Back to store
-          </a>
-          <form onSubmit={login}>
-            <span className="admin-login-icon">
-              <Glyph kind="leaf" />
-            </span>
-            <span className="admin-eyebrow">ADMIN ACCESS</span>
-            <h2>Welcome back.</h2>
-            <p>Sign in to take care of your store.</p>
-            <label>
-              Email address
-              <input name="email" type="email" autoComplete="username" required placeholder="admin@freshcut.pk" />
-            </label>
-            <label>
-              Password
-              <div style={{ position: 'relative' }}>
-                <input
-                  name="password"
-                  type={showPassword ? 'text' : 'password'}
-                  autoComplete="current-password"
-                  required
-                  placeholder="Enter your password"
-                />
-                <button
-                  type="button"
-                  onClick={() => setShowPassword(!showPassword)}
-                  style={{
-                    position: 'absolute',
-                    right: '12px',
-                    top: '50%',
-                    transform: 'translateY(-50%)',
-                    background: 'none',
-                    border: 'none',
-                    fontSize: '0.75rem',
-                    color: '#64748b',
-                    cursor: 'pointer',
-                    fontWeight: 600
-                  }}
-                >
-                  {showPassword ? 'Hide' : 'Show'}
-                </button>
+        <section className="admin-login-box">
+          <div className="admin-login-form">
+            <h2>Welcome back</h2>
+            <p>Please enter your administrator credentials to continue.</p>
+
+            {notice && (
+              <div className={`admin-alert ${notice.error ? 'error' : 'success'}`} role="alert">
+                {notice.text}
               </div>
-            </label>
-            {feedback}
-            <button className="admin-primary" disabled={busy === 'login'}>
-              {busy === 'login' ? 'Signing in…' : 'Sign in to dashboard'}
-              <Glyph kind="arrow" />
-            </button>
-            <small className="admin-login-note">Authorised team members only.</small>
-          </form>
-          <small className="admin-login-footer">FreshCut Home · Store management</small>
+            )}
+
+            <form onSubmit={login} style={{ marginTop: '24px', display: 'grid', gap: '16px' }}>
+              <label>
+                Email Address
+                <input
+                  type="email"
+                  name="email"
+                  required
+                  placeholder="freshcut2@gmail.com"
+                  defaultValue="freshcut2@gmail.com"
+                />
+              </label>
+
+              <label>
+                Password
+                <div style={{ position: 'relative' }}>
+                  <input
+                    type={showPassword ? 'text' : 'password'}
+                    name="password"
+                    required
+                    placeholder="••••••••"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword(!showPassword)}
+                    style={{
+                      position: 'absolute',
+                      right: '12px',
+                      top: '50%',
+                      transform: 'translateY(-50%)',
+                      background: 'none',
+                      border: 'none',
+                      color: '#64748b',
+                      cursor: 'pointer',
+                      fontSize: '0.8rem',
+                      fontWeight: 'bold'
+                    }}
+                  >
+                    {showPassword ? 'Hide' : 'Show'}
+                  </button>
+                </div>
+              </label>
+
+              <button className="admin-primary" disabled={busy === 'login'} style={{ marginTop: '8px' }}>
+                {busy === 'login' ? 'Authenticating…' : 'Sign in to dashboard'}
+                <Glyph kind="arrow" />
+              </button>
+            </form>
+          </div>
         </section>
       </main>
     );
   }
 
-  const active = orders.filter(o => !['Delivered', 'Cancelled'].includes(o.status)).length;
-  const revenue = orders.filter(o => o.status === 'Delivered').reduce((sum, o) => sum + o.total, 0);
-  const visibleOrders = orders.filter(
-    o =>
-      (filter === 'All' || o.status === filter) &&
-      `${o.orderNumber} ${o.customer.name} ${o.customer.phone}`.toLowerCase().includes(query.toLowerCase())
-  );
-  const visibleProducts = products.filter(p => `${p.name} ${p.cat}`.toLowerCase().includes(query.toLowerCase()));
+  const feedback = notice ? (
+    <div className={`admin-alert ${notice.error ? 'error' : 'success'}`} role="alert">
+      <span>{notice.text}</span>
+      <button onClick={() => setNotice(null)} style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: '1rem' }}>
+        ✕
+      </button>
+    </div>
+  ) : null;
 
   return (
     <main className="admin-shell">
       <aside className="admin-sidebar">
         <a className="admin-wordmark" href="/">
-          <img src="/assets/freshcut-logo.png" alt="" />
+          <img src="/assets/freshcut-logo.webp" alt="" width={32} height={32} />
           FreshCut<span>Home</span>
         </a>
         <span className="admin-workspace-label">STORE WORKSPACE</span>
@@ -318,6 +425,14 @@ export default function AdminPage() {
           >
             <Glyph kind="leaf" />
             Products<span>{products.length}</span>
+          </button>
+          <button
+            onClick={() => switchTab('reviews')}
+            aria-current={tab === 'reviews' ? 'page' : undefined}
+            className={tab === 'reviews' ? 'selected' : ''}
+          >
+            <Glyph kind="star" />
+            Reviews<span>{reviews.length}</span>
           </button>
           <a href="/">
             <Glyph kind="arrow" />
@@ -340,7 +455,7 @@ export default function AdminPage() {
       <div className="admin-main">
         <header className="admin-topbar">
           <span>
-            Workspace <span>/</span> <strong>{tab === 'orders' ? 'Orders' : 'Products'}</strong>
+            Workspace <span>/</span> <strong>{tab === 'orders' ? 'Orders' : tab === 'products' ? 'Products' : 'Customer Reviews'}</strong>
           </span>
           <div className="admin-profile">
             <span className="admin-avatar">FC</span>
@@ -355,11 +470,19 @@ export default function AdminPage() {
           <div className="admin-page-heading">
             <div>
               <span className="admin-eyebrow">A LITTLE FRESHNESS, EVERY DAY</span>
-              <h1>{tab === 'orders' ? 'Your store, at a glance.' : 'Fresh cuts, thoughtfully curated.'}</h1>
+              <h1>
+                {tab === 'orders'
+                  ? 'Your store, at a glance.'
+                  : tab === 'products'
+                  ? 'Fresh cuts, thoughtfully curated.'
+                  : 'Customer Reviews & Feedback'}
+              </h1>
               <p>
                 {tab === 'orders'
                   ? 'Keep every order moving, from your kitchen to their doorstep.'
-                  : 'Manage your catalog, pricing and availability in one place.'}
+                  : tab === 'products'
+                  ? 'Manage your catalog, pricing and availability in one place.'
+                  : 'Curate, publish and manage authentic customer reviews.'}
               </p>
             </div>
             <button className="admin-secondary" onClick={load} disabled={loading || Boolean(busy)}>
@@ -372,7 +495,7 @@ export default function AdminPage() {
               ['Total orders', orders.length, 'All orders received', 'bag'],
               ['Active orders', active, 'Awaiting preparation or delivery', 'clock'],
               ['Delivered revenue', money(revenue), 'Excludes cancelled and pending orders', 'arrow'],
-              ['Available products', products.filter(p => p.active !== false).length, `${products.length} products in catalog`, 'leaf']
+              ['Customer reviews', reviews.length, `${reviews.filter(r => r.published !== false).length} published on store`, 'star']
             ].map(([label, value, detail, icon], index) => (
               <article key={label} className={index === 2 ? 'admin-stat featured' : 'admin-stat'}>
                 <div>
@@ -391,25 +514,160 @@ export default function AdminPage() {
             <div className="admin-panel-heading">
               <div>
                 <h2>
-                  {tab === 'orders' ? 'Order management' : 'Product catalog'}
-                  <span>{tab === 'orders' ? orders.length : products.length}</span>
+                  {tab === 'orders'
+                    ? 'Order management'
+                    : tab === 'products'
+                    ? 'Product catalog'
+                    : 'Reviews management'}
+                  <span>
+                    {tab === 'orders' ? orders.length : tab === 'products' ? products.length : reviews.length}
+                  </span>
                 </h2>
                 <p>
                   {tab === 'orders'
                     ? 'Track, review and update your customer orders.'
-                    : 'Make your next fresh selection ready to shop.'}
+                    : tab === 'products'
+                    ? 'Make your next fresh selection ready to shop.'
+                    : 'Publish verified WhatsApp/customer feedback to your website.'}
                 </p>
               </div>
-              <div className="admin-search">
-                <Glyph kind="search" />
-                <input
-                  aria-label={tab === 'orders' ? 'Search orders' : 'Search products'}
-                  placeholder={tab === 'orders' ? 'Search order, name or phone…' : 'Search products or category…'}
-                  value={query}
-                  onChange={e => setQuery(e.target.value)}
-                />
+
+              <div style={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
+                {tab === 'reviews' && (
+                  <button
+                    type="button"
+                    onClick={() => setShowAddReview(!showAddReview)}
+                    style={{
+                      background: '#123c2b',
+                      color: '#ffffff',
+                      border: 'none',
+                      padding: '8px 16px',
+                      borderRadius: '10px',
+                      fontWeight: 700,
+                      fontSize: '0.85rem',
+                      cursor: 'pointer'
+                    }}
+                  >
+                    {showAddReview ? '✕ Close Form' : '+ Add New Review'}
+                  </button>
+                )}
+
+                <div className="admin-search">
+                  <Glyph kind="search" />
+                  <input
+                    aria-label={tab === 'orders' ? 'Search orders' : tab === 'products' ? 'Search products' : 'Search reviews'}
+                    placeholder={
+                      tab === 'orders'
+                        ? 'Search order, name or phone…'
+                        : tab === 'products'
+                        ? 'Search products or category…'
+                        : 'Search customer name, city or review text…'
+                    }
+                    value={query}
+                    onChange={e => setQuery(e.target.value)}
+                  />
+                </div>
               </div>
             </div>
+
+            {/* Add Review Form for Admin */}
+            {tab === 'reviews' && showAddReview && (
+              <form onSubmit={handleAddReview} style={{ background: '#f8fafc', padding: '20px', borderRadius: '16px', border: '1px solid #e2e8f0', marginBottom: '24px', display: 'grid', gap: '16px' }}>
+                <h3 style={{ margin: 0, fontSize: '1.1rem', fontWeight: 700, color: '#123c2b' }}>
+                  ✏️ Add New Customer Review
+                </h3>
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '12px' }}>
+                  <label>
+                    Customer Name *
+                    <input
+                      required
+                      placeholder="e.g. Verified Customer or Mrs. Ahmed"
+                      value={newReview.customer}
+                      onChange={e => setNewReview({ ...newReview, customer: e.target.value })}
+                    />
+                  </label>
+                  <label>
+                    City
+                    <input
+                      required
+                      placeholder="Karachi"
+                      value={newReview.city}
+                      onChange={e => setNewReview({ ...newReview, city: e.target.value })}
+                    />
+                  </label>
+                  <label>
+                    Rating (1 to 5 Stars)
+                    <select
+                      value={newReview.rating}
+                      onChange={e => setNewReview({ ...newReview, rating: Number(e.target.value) })}
+                    >
+                      <option value="5">5 Stars (★★★★★)</option>
+                      <option value="4">4 Stars (★★★★☆)</option>
+                      <option value="3">3 Stars (★★★☆☆)</option>
+                      <option value="2">2 Stars (★★☆☆☆)</option>
+                      <option value="1">1 Star (★☆☆☆☆)</option>
+                    </select>
+                  </label>
+                </div>
+
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '12px' }}>
+                  <label>
+                    Review Date
+                    <input
+                      type="date"
+                      value={newReview.date}
+                      onChange={e => setNewReview({ ...newReview, date: e.target.value })}
+                    />
+                  </label>
+                  <label style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer', marginTop: '24px' }}>
+                    <input
+                      type="checkbox"
+                      checked={newReview.verified}
+                      onChange={e => setNewReview({ ...newReview, verified: e.target.checked })}
+                    />
+                    <b>Verified Customer</b>
+                  </label>
+                  <label style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer', marginTop: '24px' }}>
+                    <input
+                      type="checkbox"
+                      checked={newReview.published}
+                      onChange={e => setNewReview({ ...newReview, published: e.target.checked })}
+                    />
+                    <b style={{ color: newReview.published ? '#15803d' : '#dc2626' }}>
+                      {newReview.published ? 'Published on Website' : 'Hidden (Draft)'}
+                    </b>
+                  </label>
+                </div>
+
+                <label>
+                  Review Text *
+                  <textarea
+                    rows={3}
+                    required
+                    placeholder="Enter genuine customer feedback (e.g. JazakAllah, bohat zabardast.)"
+                    value={newReview.text}
+                    onChange={e => setNewReview({ ...newReview, text: e.target.value })}
+                  />
+                </label>
+
+                <div style={{ display: 'flex', gap: '12px', justifyContent: 'flex-end' }}>
+                  <button
+                    type="button"
+                    onClick={() => setShowAddReview(false)}
+                    style={{ padding: '8px 16px', background: '#e2e8f0', color: '#475569', borderRadius: '8px', border: 'none', fontWeight: 600, cursor: 'pointer' }}
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    className="admin-primary"
+                    disabled={busy === 'add-review'}
+                    style={{ padding: '8px 24px' }}
+                  >
+                    {busy === 'add-review' ? 'Saving…' : 'Publish Review'}
+                  </button>
+                </div>
+              </form>
+            )}
 
             {tab === 'orders' && (
               <div className="admin-filters" aria-label="Filter by status">
@@ -430,7 +688,7 @@ export default function AdminPage() {
               <div className="admin-empty" role="status">
                 <Glyph kind="clock" />
                 <h3>Loading your store…</h3>
-                <p>Getting your latest orders and products.</p>
+                <p>Getting your latest orders and data.</p>
               </div>
             ) : tab === 'orders' ? (
               <>
@@ -460,40 +718,36 @@ export default function AdminPage() {
                               </small>
                             </td>
                             <td>
-                              <strong>{order.customer.name}</strong>
-                              <small>{order.customer.phone}</small>
-                              <p>{order.customer.address}{order.customer.area ? `, ${order.customer.area}` : ''}</p>
-                              {order.customer.notes && <small>Note: {order.customer.notes}</small>}
+                              <strong>{order.customerName}</strong>
+                              <small>{order.phone}</small>
+                              <small style={{ color: '#64748b' }}>
+                                {order.address}, {order.area}
+                              </small>
                             </td>
                             <td>
-                              <details>
-                                <summary>{order.items.reduce((sum, item) => sum + item.qty, 0)} items</summary>
-                                {order.items.map((item, index) => (
-                                  <small key={index}>
-                                    {item.qty} × {item.name} · {item.weight}
-                                  </small>
-                                ))}
-                              </details>
+                              {order.items.map(item => (
+                                <div key={item.id + item.weight} style={{ fontSize: '0.85rem' }}>
+                                  • {item.name} ({item.weight}) × {item.qty}
+                                </div>
+                              ))}
                             </td>
                             <td>
                               <strong>{money(order.total)}</strong>
-                              <small>{order.customer.payment}</small>
+                              <small>{order.payment}</small>
                             </td>
                             <td>
-                              <span className={`admin-status status-${order.status.toLowerCase().replaceAll(' ', '-')}`}>
-                                {order.status}
-                              </span>
                               <select
-                                aria-label={`Status for ${order.orderNumber}`}
+                                className={`admin-status-select ${order.status.toLowerCase().replace(/\s+/g, '-')}`}
                                 value={order.status}
-                                disabled={Boolean(busy)}
-                                onChange={e => updateStatus(order.id, e.target.value)}
+                                disabled={busy === `order-${order.id}`}
+                                onChange={e => updateOrderStatus(order.id, e.target.value)}
                               >
-                                {statuses.map(status => (
-                                  <option key={status}>{status}</option>
+                                {statuses.map(s => (
+                                  <option key={s} value={s}>
+                                    {s}
+                                  </option>
                                 ))}
                               </select>
-                              {busy === `order-${order.id}` && <small>Saving…</small>}
                             </td>
                           </tr>
                         ))}
@@ -512,12 +766,20 @@ export default function AdminPage() {
                   <span>Free delivery. Fresh beginnings.</span>
                 </div>
               </>
-            ) : (
+            ) : tab === 'products' ? (
               <div className="admin-product-grid">
                 {visibleProducts.map(product => (
                   <form key={product.id} className="admin-product-card" onSubmit={event => saveProduct(event, product)}>
                     <div className="admin-product-image">
-                      <img src={'/' + product.image.replace(/^\//, '')} alt={product.name} loading="lazy" />
+                      <OptimizedImage
+                        src={product.image}
+                        alt={product.name}
+                        variant="thumbnail"
+                        width={160}
+                        height={160}
+                        loading="lazy"
+                        className="h-full w-full object-cover"
+                      />
                       <span className={product.active !== false ? '' : 'unavailable'}>
                         {product.active !== false ? 'In stock' : 'Out of stock'}
                       </span>
@@ -612,142 +874,7 @@ export default function AdminPage() {
                             )}
                           </div>
                         ))}
-                        <button
-                          type="button"
-                          onClick={() => {
-                            const newWeight = prompt('Enter new weight label (e.g. 750g, 1kg, 2kg, 6 pcs):', '750g');
-                            if (newWeight && newWeight.trim()) {
-                              const label = newWeight.trim();
-                              editProduct(product.id, {
-                                prices: {
-                                  ...product.prices,
-                                  [label]: 100
-                                }
-                              });
-                            }
-                          }}
-                          style={{
-                            gridColumn: '1 / -1',
-                            padding: '6px 12px',
-                            background: '#f0fdf4',
-                            border: '1px dashed #86efac',
-                            color: '#166534',
-                            borderRadius: '8px',
-                            fontWeight: 600,
-                            fontSize: '0.8rem',
-                            cursor: 'pointer'
-                          }}
-                        >
-                          + Add New Weight Option
-                        </button>
                       </div>
-                      
-                      <details className="admin-product-details-toggle">
-                        <summary style={{ cursor: 'pointer', fontWeight: 600, color: '#15803d', margin: '8px 0', fontSize: '0.875rem' }}>
-                          ✏️ Edit Slug, Image &amp; SEO Info
-                        </summary>
-                        <div style={{ display: 'grid', gap: '10px', marginTop: '8px', paddingTop: '8px', borderTop: '1px solid #e2e8f0' }}>
-                          <label>
-                            Slug
-                            <input
-                              required
-                              value={product.slug || ''}
-                              onChange={e => editProduct(product.id, { slug: e.target.value })}
-                            />
-                          </label>
-                          <label>
-                            Image Path
-                            <input
-                              value={product.image || ''}
-                              onChange={e => editProduct(product.id, { image: e.target.value })}
-                            />
-                          </label>
-                          <label>
-                            Image Alt Text
-                            <input
-                              value={product.altText || ''}
-                              onChange={e => editProduct(product.id, { altText: e.target.value })}
-                            />
-                          </label>
-                          <label>
-                            Short Description
-                            <textarea
-                              rows={2}
-                              value={product.shortDescription || ''}
-                              onChange={e => editProduct(product.id, { shortDescription: e.target.value })}
-                            />
-                          </label>
-                          <label>
-                            Cutting Style & Purpose
-                            <textarea
-                              rows={2}
-                              value={product.cutDescription || ''}
-                              onChange={e => editProduct(product.id, { cutDescription: e.target.value })}
-                            />
-                          </label>
-                          <label>
-                            Storage Instructions
-                            <textarea
-                              rows={2}
-                              value={product.storageInstructions || ''}
-                              onChange={e => editProduct(product.id, { storageInstructions: e.target.value })}
-                            />
-                          </label>
-                          <label>
-                            Hygiene & Preparation Info
-                            <textarea
-                              rows={2}
-                              value={product.hygieneInformation || ''}
-                              onChange={e => editProduct(product.id, { hygieneInformation: e.target.value })}
-                            />
-                          </label>
-                          <label>
-                            Nutritional Overview (JSON)
-                            <textarea
-                              rows={3}
-                              style={{ fontFamily: 'monospace', fontSize: '0.8rem' }}
-                              value={typeof product.nutritionSummary === 'object' ? JSON.stringify(product.nutritionSummary, null, 2) : (product.nutritionSummary || '')}
-                              onChange={e => editProduct(product.id, { nutritionSummary: e.target.value })}
-                            />
-                          </label>
-                          <label>
-                            Nutrients List (JSON)
-                            <textarea
-                              rows={3}
-                              style={{ fontFamily: 'monospace', fontSize: '0.8rem' }}
-                              value={typeof product.nutrients === 'object' ? JSON.stringify(product.nutrients, null, 2) : (product.nutrients || '')}
-                              onChange={e => editProduct(product.id, { nutrients: e.target.value })}
-                            />
-                          </label>
-                          <label>
-                            Health Benefits (JSON)
-                            <textarea
-                              rows={3}
-                              style={{ fontFamily: 'monospace', fontSize: '0.8rem' }}
-                              value={typeof product.healthBenefits === 'object' ? JSON.stringify(product.healthBenefits, null, 2) : (product.healthBenefits || '')}
-                              onChange={e => editProduct(product.id, { healthBenefits: e.target.value })}
-                            />
-                          </label>
-                          <label>
-                            Best Cooking Uses (JSON)
-                            <textarea
-                              rows={3}
-                              style={{ fontFamily: 'monospace', fontSize: '0.8rem' }}
-                              value={typeof product.cookingUses === 'object' ? JSON.stringify(product.cookingUses, null, 2) : (product.cookingUses || '')}
-                              onChange={e => editProduct(product.id, { cookingUses: e.target.value })}
-                            />
-                          </label>
-                          <label>
-                            FAQs List (JSON)
-                            <textarea
-                              rows={4}
-                              style={{ fontFamily: 'monospace', fontSize: '0.8rem' }}
-                              value={typeof product.faq === 'object' ? JSON.stringify(product.faq, null, 2) : (product.faq || '')}
-                              onChange={e => editProduct(product.id, { faq: e.target.value })}
-                            />
-                          </label>
-                        </div>
-                      </details>
 
                       <button className="admin-primary" disabled={Boolean(busy)}>
                         {busy === `product-${product.id}` ? 'Saving…' : 'Save changes'}
@@ -760,6 +887,195 @@ export default function AdminPage() {
                   <div className="admin-empty">
                     <h3>No products found</h3>
                     <p>Try another name or category.</p>
+                  </div>
+                )}
+              </div>
+            ) : (
+              /* Customer Reviews Admin Tab */
+              <div style={{ display: 'grid', gap: '16px' }}>
+                {visibleReviews.map(review => {
+                  const isEditing = editingReviewId === review.id;
+                  return (
+                    <div
+                      key={review.id}
+                      style={{
+                        background: '#ffffff',
+                        borderRadius: '16px',
+                        border: '1px solid #e2e8f0',
+                        padding: '20px',
+                        boxShadow: '0 1px 3px rgba(0,0,0,0.05)',
+                        display: 'flex',
+                        flexDirection: 'column',
+                        gap: '12px'
+                      }}
+                    >
+                      {isEditing ? (
+                        /* Edit Review Mode */
+                        <form onSubmit={e => handleSaveReview(e, review)} style={{ display: 'grid', gap: '12px' }}>
+                          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '10px' }}>
+                            <label>
+                              Customer Name
+                              <input
+                                required
+                                value={review.customer}
+                                onChange={e => editReviewState(review.id, { customer: e.target.value })}
+                              />
+                            </label>
+                            <label>
+                              City
+                              <input
+                                value={review.city || ''}
+                                onChange={e => editReviewState(review.id, { city: e.target.value })}
+                              />
+                            </label>
+                            <label>
+                              Rating
+                              <select
+                                value={review.rating || 5}
+                                onChange={e => editReviewState(review.id, { rating: Number(e.target.value) })}
+                              >
+                                <option value="5">5 Stars</option>
+                                <option value="4">4 Stars</option>
+                                <option value="3">3 Stars</option>
+                                <option value="2">2 Stars</option>
+                                <option value="1">1 Star</option>
+                              </select>
+                            </label>
+                          </div>
+                          <label>
+                            Review Text
+                            <textarea
+                              rows={2}
+                              required
+                              value={review.text}
+                              onChange={e => editReviewState(review.id, { text: e.target.value })}
+                            />
+                          </label>
+                          <div style={{ display: 'flex', gap: '16px', alignItems: 'center' }}>
+                            <label style={{ display: 'flex', alignItems: 'center', gap: '6px', cursor: 'pointer' }}>
+                              <input
+                                type="checkbox"
+                                checked={review.published !== false}
+                                onChange={e => editReviewState(review.id, { published: e.target.checked })}
+                              />
+                              <b>Published on Storefront</b>
+                            </label>
+                            <label style={{ display: 'flex', alignItems: 'center', gap: '6px', cursor: 'pointer' }}>
+                              <input
+                                type="checkbox"
+                                checked={review.verified !== false}
+                                onChange={e => editReviewState(review.id, { verified: e.target.checked })}
+                              />
+                              <b>Verified Badge</b>
+                            </label>
+                            <div style={{ marginLeft: 'auto', display: 'flex', gap: '8px' }}>
+                              <button
+                                type="button"
+                                onClick={() => setEditingReviewId(null)}
+                                style={{ padding: '6px 12px', background: '#e2e8f0', borderRadius: '8px', border: 'none', cursor: 'pointer' }}
+                              >
+                                Cancel
+                              </button>
+                              <button className="admin-primary" style={{ padding: '6px 16px' }}>
+                                Save Changes
+                              </button>
+                            </div>
+                          </div>
+                        </form>
+                      ) : (
+                        /* Read / Action Mode */
+                        <>
+                          <div style={{ display: 'flex', justifyBetween: 'space-between', alignItems: 'center', borderBottom: '1px solid #f1f5f9', pb: '10px' }}>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                              <span style={{ color: '#f59e0b', fontSize: '1.2rem', fontWeight: 'bold' }}>
+                                {'★'.repeat(Number(review.rating) || 5)}
+                              </span>
+                              <strong style={{ fontSize: '1rem', color: '#0f172a' }}>{review.customer}</strong>
+                              <span style={{ fontSize: '0.85rem', color: '#64748b' }}>({review.city || 'Karachi'})</span>
+                              {review.verified !== false && (
+                                <span style={{ fontSize: '0.75rem', background: '#dcfce7', color: '#15803d', padding: '2px 8px', borderRadius: '12px', fontWeight: 'bold' }}>
+                                  ✓ Verified
+                                </span>
+                              )}
+                            </div>
+                            <div style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                              <span style={{ fontSize: '0.8rem', color: review.published !== false ? '#15803d' : '#dc2626', fontWeight: 'bold', background: review.published !== false ? '#f0fdf4' : '#fef2f2', padding: '4px 10px', borderRadius: '8px' }}>
+                                {review.published !== false ? '● Published' : '○ Hidden'}
+                              </span>
+                            </div>
+                          </div>
+
+                          <blockquote style={{ margin: 0, fontSize: '0.95rem', color: '#334155', fontStyle: 'italic', lineHeight: 1.5 }}>
+                            “{review.text}”
+                          </blockquote>
+
+                          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', pt: '8px', borderTop: '1px solid #f8fafc' }}>
+                            <small style={{ color: '#94a3b8' }}>
+                              Date: {review.date || review.createdAt?.split('T')[0] || 'N/A'}
+                            </small>
+                            <div style={{ display: 'flex', gap: '8px' }}>
+                              <button
+                                type="button"
+                                onClick={() => handleTogglePublishReview(review)}
+                                disabled={busy === `review-publish-${review.id}`}
+                                style={{
+                                  padding: '6px 12px',
+                                  borderRadius: '8px',
+                                  fontSize: '0.8rem',
+                                  fontWeight: 'bold',
+                                  cursor: 'pointer',
+                                  border: '1px solid #cbd5e1',
+                                  background: review.published !== false ? '#f8fafc' : '#f0fdf4',
+                                  color: review.published !== false ? '#475569' : '#15803d'
+                                }}
+                              >
+                                {review.published !== false ? 'Hide Review' : 'Publish Review'}
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() => setEditingReviewId(review.id)}
+                                style={{
+                                  padding: '6px 12px',
+                                  borderRadius: '8px',
+                                  fontSize: '0.8rem',
+                                  fontWeight: 'bold',
+                                  cursor: 'pointer',
+                                  border: '1px solid #cbd5e1',
+                                  background: '#ffffff',
+                                  color: '#0f172a'
+                                }}
+                              >
+                                ✏️ Edit
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() => handleDeleteReview(review)}
+                                disabled={busy === `review-del-${review.id}`}
+                                style={{
+                                  padding: '6px 12px',
+                                  borderRadius: '8px',
+                                  fontSize: '0.8rem',
+                                  fontWeight: 'bold',
+                                  cursor: 'pointer',
+                                  border: '1px solid #fecaca',
+                                  background: '#fef2f2',
+                                  color: '#dc2626'
+                                }}
+                              >
+                                🗑 Delete
+                              </button>
+                            </div>
+                          </div>
+                        </>
+                      )}
+                    </div>
+                  );
+                })}
+                {!visibleReviews.length && (
+                  <div className="admin-empty">
+                    <Glyph kind="star" />
+                    <h3>{reviews.length ? 'No matching reviews' : 'No customer reviews yet.'}</h3>
+                    <p>{reviews.length ? 'Try another search query.' : 'Click "+ Add New Review" above to add your first customer review.'}</p>
                   </div>
                 )}
               </div>

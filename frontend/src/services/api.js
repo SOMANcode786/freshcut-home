@@ -1,4 +1,5 @@
 import fallbackProducts from '../../../backend/src/data/products.js';
+import fallbackReviews from '../../../backend/src/data/reviews.js';
 
 const base = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
 
@@ -20,6 +21,10 @@ export async function api(path, options = {}) {
     if (path === '/products' || path === '/products/') {
       console.warn('API fetch failed. Falling back to local static product catalog.');
       return fallbackProducts;
+    }
+    if (path === '/reviews' || path === '/reviews/') {
+      console.warn('API fetch failed. Falling back to local reviews dataset.');
+      return fallbackReviews.filter(r => r.published !== false);
     }
     throw error;
   }

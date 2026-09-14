@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { useCart } from '../context/CartContext';
 import { api } from '../services/api';
 import MarketPriceNotice from './MarketPriceNotice';
+import OptimizedImage from './OptimizedImage';
 
 export default function CartDrawer({ open, onClose }) {
   const { cart, change, clear } = useCart();
@@ -86,7 +87,18 @@ export default function CartDrawer({ open, onClose }) {
               <div className="my-6 grid gap-3">
                 {cart.map(x => (
                   <div key={x.id + x.weight} className="panel flex items-center gap-3 p-3">
-                    <img src={'/' + x.image} className="h-14 w-14 rounded-xl object-cover" alt={x.name} />
+                    <div className="h-14 w-14 flex-shrink-0 rounded-xl overflow-hidden">
+                      <OptimizedImage
+                        src={x.image}
+                        alt={`${x.name} – fresh cut vegetables`}
+                        variant="thumbnail"
+                        width={160}
+                        height={160}
+                        loading="lazy"
+                        fetchPriority="auto"
+                        className="h-full w-full object-cover rounded-xl"
+                      />
+                    </div>
                     <div className="flex-1">
                       <b>{x.name}</b>
                       <p className="text-sm text-slate-500">

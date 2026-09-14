@@ -1,0 +1,13 @@
+# FreshCut Home
+
+> FreshCut Home is Karachi's premier online store for hygienically washed, pre-cut, and ready-to-cook fresh vegetables delivered daily across Karachi, Pakistan.
+
+## Products & Catalog
+- Pre-cut Vegetables: Chopped onions, peeled garlic, sliced bitter gourd, capsicum, julienne carrots, potato cubes, etc.
+- Portion Sizes: Custom weights starting from 250g up to bulk orders (5kg+).
+- Delivery: Free next-day delivery across Karachi for orders placed before 12 AM.
+
+## Links & Information
+- Homepage: https://www.freshcuthome.store/
+- Catalogue: https://www.freshcuthome.store/products
+- Sitemap: https://www.freshcuthome.store/sitemap.xml
