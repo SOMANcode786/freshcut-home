@@ -328,64 +328,71 @@ export default function AdminPage() {
           </p>
         </section>
 
-        <section className="admin-login-box">
-          <div className="admin-login-form">
-            <h2>Welcome back</h2>
-            <p>Please enter your administrator credentials to continue.</p>
+        <section className="admin-login-panel">
+          <a className="admin-back" href="/">
+            ← Back to Storefront
+          </a>
+          <div className="admin-login-icon">
+            <Glyph kind="leaf" />
+          </div>
+          <h2>Welcome back</h2>
+          <p>Please enter your administrator credentials to continue.</p>
 
-            {notice && (
-              <div className={`admin-alert ${notice.error ? 'error' : 'success'}`} role="alert">
-                {notice.text}
-              </div>
-            )}
+          {notice && (
+            <div className={`admin-alert ${notice.error ? 'error' : 'success'}`} role="alert">
+              {notice.text}
+            </div>
+          )}
 
-            <form onSubmit={login} style={{ marginTop: '24px', display: 'grid', gap: '16px' }}>
-              <label>
-                Email Address
+          <form onSubmit={login}>
+            <label>
+              Email Address
+              <input
+                type="email"
+                name="email"
+                required
+                placeholder="freshcut2@gmail.com"
+                defaultValue="freshcut2@gmail.com"
+              />
+            </label>
+
+            <label>
+              Password
+              <div style={{ position: 'relative' }}>
                 <input
-                  type="email"
-                  name="email"
+                  type={showPassword ? 'text' : 'password'}
+                  name="password"
                   required
-                  placeholder="freshcut2@gmail.com"
-                  defaultValue="freshcut2@gmail.com"
+                  placeholder="••••••••"
                 />
-              </label>
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  style={{
+                    position: 'absolute',
+                    right: '12px',
+                    top: '50%',
+                    transform: 'translateY(-50%)',
+                    background: 'none',
+                    border: 'none',
+                    color: '#64748b',
+                    cursor: 'pointer',
+                    fontSize: '0.8rem',
+                    fontWeight: 'bold'
+                  }}
+                >
+                  {showPassword ? 'Hide' : 'Show'}
+                </button>
+              </div>
+            </label>
 
-              <label>
-                Password
-                <div style={{ position: 'relative' }}>
-                  <input
-                    type={showPassword ? 'text' : 'password'}
-                    name="password"
-                    required
-                    placeholder="••••••••"
-                  />
-                  <button
-                    type="button"
-                    onClick={() => setShowPassword(!showPassword)}
-                    style={{
-                      position: 'absolute',
-                      right: '12px',
-                      top: '50%',
-                      transform: 'translateY(-50%)',
-                      background: 'none',
-                      border: 'none',
-                      color: '#64748b',
-                      cursor: 'pointer',
-                      fontSize: '0.8rem',
-                      fontWeight: 'bold'
-                    }}
-                  >
-                    {showPassword ? 'Hide' : 'Show'}
-                  </button>
-                </div>
-              </label>
-
-              <button className="admin-primary" disabled={busy === 'login'} style={{ marginTop: '8px' }}>
-                {busy === 'login' ? 'Authenticating…' : 'Sign in to dashboard'}
-                <Glyph kind="arrow" />
-              </button>
-            </form>
+            <button className="admin-primary" disabled={busy === 'login'}>
+              {busy === 'login' ? 'Authenticating…' : 'Sign in to dashboard'}
+              <Glyph kind="arrow" />
+            </button>
+          </form>
+          <div className="admin-login-footer">
+            FreshCut Home Operations Portal
           </div>
         </section>
       </main>
